@@ -26,6 +26,11 @@ body {
   color: var(--text-light);
   overflow-x: hidden;
   position: relative;
+  -webkit-touch-callout: none;
+  -webkit-text-size-adjust: none;
+  background-attachment: fixed;
+  height: 100vh;
+  overflow: hidden;
 }
 
 body::before {
@@ -46,6 +51,8 @@ body::before {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 /* Header - Solo logo */
@@ -133,6 +140,11 @@ main {
   cursor: pointer;
   transition: transform 0.2s ease;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  background: transparent !important;
 }
 
 .cat-container:active {
@@ -152,8 +164,6 @@ main {
   width: 100%;
   height: 100%;
   transition: opacity 0.1s ease;
-  /* QUITADO: border-radius: 50%; */
-  /* QUITADO: object-fit: cover; */
 }
 
 .cat-closed {
