@@ -113,7 +113,7 @@ class PopCatGame {
       }
     });
     
-    document.getElementById('dashboardToggle').addEventListener('click', () => {
+    this.dashboardMinimized.addEventListener('click', () => {
       this.toggleDashboard();
     });
     
@@ -193,9 +193,9 @@ class PopCatGame {
     floatingNumber.className = 'floating-number';
     floatingNumber.textContent = this.userClicks.toLocaleString();
     
-    // Posición aleatoria (-50px a +50px del centro)
-    const randomX = (Math.random() * 100 - 50);
-    const randomY = -80; // Posición fija arriba del gato
+    // Posición aleatoria (-60px a +60px del centro)
+    const randomX = (Math.random() * 120 - 60);
+    const randomY = -100; // Posición fija arriba del gato
     
     // Dirección aleatoria
     const directions = ['left', 'center', 'right'];
@@ -210,7 +210,7 @@ class PopCatGame {
     // Remover después de la animación
     setTimeout(() => {
       floatingNumber.remove();
-    }, 1000);
+    }, 1200);
   }
 
   animateNumber(element, targetValue, duration = 500) {
