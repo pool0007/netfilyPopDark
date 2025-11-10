@@ -148,6 +148,7 @@ main {
   transform: translateZ(0);
   backface-visibility: hidden;
   perspective: 1000;
+  will-change: transform; /* Optimización para animaciones */
 }
 
 .cat-container:active {
@@ -169,6 +170,7 @@ main {
   transition: opacity 0.05s ease;
   transform: translateZ(0);
   backface-visibility: hidden;
+  will-change: opacity; /* Optimización específica */
 }
 
 .cat-closed {
@@ -201,6 +203,7 @@ main {
   animation: floatUp 1s ease-out forwards;
   z-index: 10;
   backface-visibility: hidden;
+  will-change: transform, opacity; /* Optimización */
 }
 
 @keyframes floatUp {
