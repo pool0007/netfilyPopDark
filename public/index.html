@@ -15,6 +15,19 @@
     </header>
 
     <main>
+      <!-- Contador personal arriba del gato -->
+      <div class="personal-counter">
+        <div class="my-stats">
+          <div class="my-flag" id="myFlagContainer">
+            <img id="myFlag" src="https://flagcdn.com/24x18/un.png" alt="My Country">
+          </div>
+          <div class="my-clicks">
+            <span id="myClicks">0</span>
+            <span class="clicks-label">mis clicks</span>
+          </div>
+        </div>
+      </div>
+
       <div class="cat-container" id="catContainer">
         <div class="cat-images">
           <img src="https://i.ibb.co/Ktkqyk7/image1.png" class="cat-img cat-closed" alt="Cat Closed" />
@@ -23,69 +36,48 @@
         <div class="click-effect">+1</div>
       </div>
       
-      <div class="click-counter">
-        <span id="totalClicks">0</span>
-        <span class="label">clicks totales</span>
-      </div>
-      
       <div class="instructions">
         ¡Haz clic en el gato para sumar puntos a tu país! 🎯
       </div>
     </main>
   </div>
 
+  <!-- Dashboard Minimizado -->
   <div class="dashboard-minimized" id="dashboardMinimized">
     <div class="dashboard-header" id="dashboardToggle">
-      <div class="dashboard-stats">
-        <div class="stat-mini">
-          <span class="value" id="miniTotalClicks">0</span>
-          <span class="label">Clicks Totales</span>
-        </div>
-        <div class="stat-mini">
-          <span class="value" id="miniTopCountry">-</span>
-          <span class="label">País Líder</span>
-        </div>
-      </div>
-      <div class="toggle-arrow">▼</div>
-    </div>
-  </div>
-
-  <div class="dashboard-expanded" id="dashboardExpanded" style="display: none;">
-    <div class="dashboard-header" id="dashboardClose">
-      <h2>📊 Dashboard Global</h2>
-      <div class="toggle-arrow">▼</div>
-    </div>
-    
-    <div class="dashboard-content">
-      <div class="leaderboard-section">
-        <h2>🏆 Leaderboard Global</h2>
-        <div class="leaderboard">
-          <div class="leaderboard-header">
-            <span>#</span>
-            <span>País</span>
-            <span>Clicks</span>
-          </div>
-          <div id="leaderboardBody" class="leaderboard-body"></div>
+      <div class="leaderboard-mini">
+        <div class="top-country">
+          <span class="trophy">🏆</span>
+          <span class="rank-number">1</span>
+          <img id="topCountryFlag" src="https://flagcdn.com/16x12/un.png" alt="Top Country" class="country-flag-mini">
+          <span class="country-name" id="topCountryName">-</span>
+          <span class="clicks-count" id="topCountryClicks">0</span>
         </div>
       </div>
       
-      <div class="stats-section">
-        <h2>📈 Tus Estadísticas</h2>
-        <div class="user-stats">
-          <div class="stat-card">
-            <span class="value" id="userCountryStat">-</span>
-            <span class="label">Tu País</span>
-          </div>
-          <div class="stat-card">
-            <span class="value" id="userClicksStat">0</span>
-            <span class="label">Tus Clicks</span>
-          </div>
-          <div class="stat-card">
-            <span class="value" id="userRankStat">-</span>
-            <span class="label">Tu Posición</span>
-          </div>
+      <div class="my-country-stats">
+        <div class="my-mini-stats">
+          <img id="myMiniFlag" src="https://flagcdn.com/16x12/un.png" alt="My Country" class="country-flag-mini">
+          <span class="my-clicks-count" id="myMiniClicks">0</span>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Expandido -->
+  <div class="dashboard-expanded" id="dashboardExpanded" style="display: none;">
+    <div class="dashboard-header" id="dashboardClose">
+      <h2>📊 Leaderboard Global</h2>
+      <div class="toggle-arrow">▼</div>
+    </div>
+    
+    <div class="leaderboard-full">
+      <div class="leaderboard-header-full">
+        <span class="rank-header">#</span>
+        <span class="country-header">País</span>
+        <span class="clicks-header">Clicks</span>
+      </div>
+      <div id="leaderboardBody" class="leaderboard-body-full"></div>
     </div>
   </div>
 
