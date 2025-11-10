@@ -417,21 +417,33 @@ class PopCatGame {
       const countryCode = row.country_code || getCountryCode(row.country);
       const flagUrl = `https://flagcdn.com/24x18/${countryCode}.png`;
       
-      // Determinar qué icono usar según la posición
+      // Determinar qué icono usar según la posición (ICONOS INLINE)
       let medalIcon = '';
       let medalClass = 'medal-other';
       
       if (index === 0) {
-        medalIcon = '<svg class="medal-icon medal-gold"><use href="#icon-gold-medal"/></svg>';
+        // Medalla de Oro
+        medalIcon = `<svg class="medal-icon medal-gold" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M20,2H4V4L9.81,8.36C6.14,9.57 4.14,13.53 5.35,17.2C6.56,20.87 10.5,22.87 14.19,21.66C17.86,20.45 19.86,16.5 18.65,12.82C17.8,10.38 15.59,8.69 13,8.25V14.75C13,15.85 12.1,16.75 11,16.75H9C7.9,16.75 7,15.85 7,14.75V10.14L4,7.79V18H20V2Z"/>
+        </svg>`;
         medalClass = 'medal-gold';
       } else if (index === 1) {
-        medalIcon = '<svg class="medal-icon medal-silver"><use href="#icon-silver-medal"/></svg>';
+        // Medalla de Plata
+        medalIcon = `<svg class="medal-icon medal-silver" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M20,2H4V4L9.81,8.36C6.14,9.57 4.14,13.53 5.35,17.2C6.56,20.87 10.5,22.87 14.19,21.66C17.86,20.45 19.86,16.5 18.65,12.82C17.8,10.38 15.59,8.69 13,8.25V14.75C13,15.85 12.1,16.75 11,16.75H9C7.9,16.75 7,15.85 7,14.75V10.14L4,7.79V18H20V2Z"/>
+        </svg>`;
         medalClass = 'medal-silver';
       } else if (index === 2) {
-        medalIcon = '<svg class="medal-icon medal-bronze"><use href="#icon-bronze-medal"/></svg>';
+        // Medalla de Bronce
+        medalIcon = `<svg class="medal-icon medal-bronze" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M20,2H4V4L9.81,8.36C6.14,9.57 4.14,13.53 5.35,17.2C6.56,20.87 10.5,22.87 14.19,21.66C17.86,20.45 19.86,16.5 18.65,12.82C17.8,10.38 15.59,8.69 13,8.25V14.75C13,15.85 12.1,16.75 11,16.75H9C7.9,16.75 7,15.85 7,14.75V10.14L4,7.79V18H20V2Z"/>
+        </svg>`;
         medalClass = 'medal-bronze';
       } else {
-        medalIcon = '<svg class="medal-icon medal-other"><use href="#icon-other-rank"/></svg>';
+        // Icono genérico para otras posiciones
+        medalIcon = `<svg class="medal-icon medal-other" viewBox="0 0 24 24" width="16" height="16">
+          <path fill="currentColor" d="M4,10V21H6V14H8V21H10V14H12V21H14V14H16V21H18V14H20V21H22V10L12,2L4,10M16,8L12,4.5L8,8H16Z"/>
+        </svg>`;
         medalClass = 'medal-other';
       }
       
