@@ -158,6 +158,9 @@ class PopCatGame {
     this.animateClick();
     this.userClicks++;
     
+    // Efecto de rotación en el contador
+    this.rotateCounter();
+    
     // Actualizar contadores con animación
     this.updateFloatingCounter();
     this.animateNumber(this.myMiniClicks, this.userClicks, 300);
@@ -186,6 +189,24 @@ class PopCatGame {
     } catch (error) {
       console.error('Error sending click:', error.message);
     }
+  }
+
+  // Efecto de rotación para el contador
+  rotateCounter() {
+    // Remover clases anteriores
+    this.floatingCounter.classList.remove('rotate-left', 'rotate-right', 'rotate-center');
+    
+    // Direcciones aleatorias
+    const directions = ['rotate-left', 'rotate-right', 'rotate-center'];
+    const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+    
+    // Aplicar la clase de rotación
+    this.floatingCounter.classList.add(randomDirection);
+    
+    // Remover la clase después de la animación
+    setTimeout(() => {
+      this.floatingCounter.classList.remove(randomDirection);
+    }, 200);
   }
 
   // Actualizar contador flotante
