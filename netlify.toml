@@ -10,7 +10,17 @@
   to = "/.netlify/functions/api/:splat"
   status = 200
 
+# Solo redirige a index.html para rutas que no sean archivos existentes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  conditions = {Language = ["en"], Country = ["US"], Role = ["admin"]}
+
+# Serve static files directly
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
