@@ -1,75 +1,36 @@
-import express from 'express';
-import pg from 'pg';
-import cors from 'cors';
-import serverless from 'serverless-http';
+import { Pool } from 'pg';
 
-const { Pool } = pg;
-
-const app = express();
-
-// Middleware
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST'],
-  credentials: true
-}));
-app.use(express.json());
-
-// Database connection with better error handling
-const createPool = () => {
-  try {
-    console.log('🔗 Creating database pool with URL:', 
-      process.env.DATABASE_URL ? 'URL present' : 'URL missing');
-    
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { 
-        rejectUnauthorized: false 
-      },
-      // Additional connection settings for Neon
-      connectionTimeoutMillis: 10000,
-      idleTimeoutMillis: 30000,
-      max: 5
-    });
-
-    // Test connection
-    pool.on('connect', () => {
-      console.log('✅ Database connected successfully');
-    });
-
-    pool.on('error', (err) => {
-      console.error('❌ Database connection error:', err);
-    });
-
-    return pool;
-  } catch (error) {
-    console.error('❌ Error creating pool:', error);
-    throw error;
+// Configuración de la base de datos
+const poolConfig = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
   }
 };
 
 let pool;
+let dbInitialized = false;
 
-// Initialize database connection
 const initializeDatabase = async () => {
+  if (dbInitialized) return true;
+  
   try {
-    if (!pool) {
-      pool = createPool();
-    }
-
-    // Test the connection
-    const client = await pool.connect();
-    console.log('✅ Database connection test successful');
+    console.log('🔗 Initializing database connection...');
+    pool = new Pool(poolConfig);
     
-    // Check if table exists, create if not
-    const tableCheck = await client.query(`
+    // Test connection
+    const client = await pool.connect();
+    console.log('✅ Database connected successfully');
+    
+    // Check and create table if needed
+    const tableExists = await client.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_name = 'clicks'
       );
     `);
-
-    if (!tableCheck.rows[0].exists) {
+    
+    if (!tableExists.rows[0].exists) {
       console.log('📋 Creating clicks table...');
       await client.query(`
         CREATE TABLE clicks (
@@ -78,149 +39,157 @@ const initializeDatabase = async () => {
         );
       `);
       console.log('✅ Table created successfully');
-    } else {
-      console.log('✅ Table already exists');
     }
-
+    
     client.release();
+    dbInitialized = true;
     return true;
   } catch (error) {
-    console.error('❌ Database initialization error:', error);
+    console.error('❌ Database initialization failed:', error);
     return false;
   }
 };
 
-// Initialize on cold start
-let dbInitialized = false;
-
-const ensureDatabaseInitialized = async () => {
-  if (!dbInitialized) {
-    dbInitialized = await initializeDatabase();
-  }
-  return dbInitialized;
+// Headers comunes
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Accept',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Content-Type': 'application/json'
 };
 
-// Routes
-app.post('/click', async (req, res) => {
-  console.log('📥 Received click request:', req.body);
+export const handler = async (event) => {
+  console.log('📥 API Request:', event.httpMethod, event.path);
   
-  const { country } = req.body;
-
-  if (!country) {
-    return res.status(400).json({ success: false, error: "Falta el país" });
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
   }
-
+  
+  const path = event.path.replace('/api/', '');
+  
   try {
-    // Ensure database is initialized
-    const initialized = await ensureDatabaseInitialized();
-    if (!initialized) {
-      throw new Error('Database not initialized');
+    // Health check - no necesita DB
+    if (path === 'health' && event.httpMethod === 'GET') {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          status: 'OK',
+          timestamp: new Date().toISOString(),
+          environment: process.env.NODE_ENV || 'development'
+        })
+      };
     }
-
-    const updateResult = await pool.query(
-      `INSERT INTO clicks (country, total_clicks)
-       VALUES ($1, 1)
-       ON CONFLICT (country) 
-       DO UPDATE SET total_clicks = clicks.total_clicks + 1
-       RETURNING total_clicks`,
-      [country]
-    );
-
-    console.log('✅ Click added for country:', country);
-
-    const result = await pool.query(
-      "SELECT country, total_clicks FROM clicks ORDER BY total_clicks DESC LIMIT 20"
-    );
-
-    res.status(200).json({
-      success: true,
-      leaderboard: result.rows,
-      country: country,
-      newCount: updateResult.rows[0]?.total_clicks
-    });
     
-  } catch (err) {
-    console.error("❌ Error al sumar click:", err.message);
-    res.status(500).json({ 
-      success: false, 
-      error: err.message
-    });
-  }
-});
-
-app.get('/leaderboard', async (req, res) => {
-  try {
-    const initialized = await ensureDatabaseInitialized();
-    if (!initialized) {
-      throw new Error('Database not initialized');
+    // Para otras rutas, inicializar DB
+    const dbReady = await initializeDatabase();
+    if (!dbReady) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: 'Database not available'
+        })
+      };
     }
-
-    const result = await pool.query(
-      "SELECT country, total_clicks FROM clicks ORDER BY total_clicks DESC LIMIT 20"
-    );
     
-    res.status(200).json({
-      success: true,
-      leaderboard: result.rows,
-    });
-  } catch (err) {
-    console.error("❌ Error al obtener leaderboard:", err.message);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-app.get('/test-db', async (req, res) => {
-  try {
-    const initialized = await ensureDatabaseInitialized();
-    if (!initialized) {
-      throw new Error('Database not initialized');
+    // Click endpoint
+    if (path === 'click' && event.httpMethod === 'POST') {
+      const { country } = JSON.parse(event.body);
+      
+      if (!country) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ 
+            success: false, 
+            error: "Country is required" 
+          })
+        };
+      }
+      
+      const updateResult = await pool.query(
+        `INSERT INTO clicks (country, total_clicks)
+         VALUES ($1, 1)
+         ON CONFLICT (country) 
+         DO UPDATE SET total_clicks = clicks.total_clicks + 1
+         RETURNING total_clicks`,
+        [country]
+      );
+      
+      const leaderboardResult = await pool.query(
+        "SELECT country, total_clicks FROM clicks ORDER BY total_clicks DESC LIMIT 20"
+      );
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          leaderboard: leaderboardResult.rows,
+          country: country,
+          newCount: updateResult.rows[0]?.total_clicks
+        })
+      };
     }
-
-    const result = await pool.query("SELECT NOW()");
-    const tableCheck = await pool.query("SELECT COUNT(*) as count FROM clicks");
-    const sampleData = await pool.query("SELECT * FROM clicks ORDER BY total_clicks DESC LIMIT 5");
     
-    res.status(200).json({
-      success: true,
-      message: "Conexión a la base de datos exitosa",
-      timestamp: result.rows[0].now,
-      total_countries: tableCheck.rows[0].count,
-      sample_data: sampleData.rows
-    });
-  } catch (err) {
-    console.error("❌ Error al conectar con la base de datos:", err.message);
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
-  }
-});
-
-app.get('/health', async (req, res) => {
-  try {
-    const initialized = await ensureDatabaseInitialized();
+    // Leaderboard endpoint
+    if (path === 'leaderboard' && event.httpMethod === 'GET') {
+      const result = await pool.query(
+        "SELECT country, total_clicks FROM clicks ORDER BY total_clicks DESC LIMIT 20"
+      );
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          leaderboard: result.rows,
+        })
+      };
+    }
     
-    res.json({ 
-      status: 'OK', 
-      timestamp: new Date().toISOString(),
-      database: initialized ? 'connected' : 'disconnected',
-      environment: process.env.NODE_ENV || 'development'
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: 'ERROR',
-      database: 'disconnected',
-      error: err.message
-    });
+    // Test DB endpoint
+    if (path === 'test-db' && event.httpMethod === 'GET') {
+      const now = await pool.query("SELECT NOW()");
+      const count = await pool.query("SELECT COUNT(*) as count FROM clicks");
+      const sample = await pool.query("SELECT * FROM clicks ORDER BY total_clicks DESC LIMIT 5");
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          message: "Database connection successful",
+          timestamp: now.rows[0].now,
+          total_countries: count.rows[0].count,
+          sample_data: sample.rows
+        })
+      };
+    }
+    
+    // Ruta no encontrada
+    return {
+      statusCode: 404,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Endpoint not found',
+        path: path,
+        method: event.httpMethod
+      })
+    };
+    
+  } catch (error) {
+    console.error('❌ API Error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        success: false, 
+        error: error.message 
+      })
+    };
   }
-});
-
-// Health check endpoint for Netlify
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'PopCat API is running',
-    timestamp: new Date().toISOString()
-  });
-});
-
-export const handler = serverless(app);
+};
