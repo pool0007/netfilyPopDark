@@ -24,32 +24,47 @@ class PopCatGame {
     this.myMiniFlag = document.getElementById('myMiniFlag');
     this.myMiniClicks = document.getElementById('myMiniClicks');
     
-    // SISTEMA DE SONIDO MEJORADO - COMPLETAMENTE SEPARADO
-    this.audioElements = [];
-    this.maxAudioElements = 8;
-    this.currentAudioIndex = 0;
-    this.audioUnlocked = false;
-    this.soundEnabled = true;
+    // DETECCIÓN DE IPHONE PARA DESACTIVAR SONIDO
+    this.isIPhone = this.detectIPhone();
+    this.soundEnabled = !this.isIPhone; // Desactivar solo en iPhone
+    
+    // Sistema de sonido solo si está habilitado
+    if (this.soundEnabled) {
+      this.audioElements = [];
+      this.maxAudioElements = 8;
+      this.currentAudioIndex = 0;
+      this.audioUnlocked = false;
+    }
     
     this.baseURL = window.location.origin + '/api';
     this.isDashboardExpanded = false;
     
+    console.log(`📱 Dispositivo: ${this.isIPhone ? 'iPhone - Sonido DESACTIVADO' : 'Otro - Sonido ACTIVADO'}`);
+    
     this.init();
+  }
+
+  detectIPhone() {
+    // Detectar iPhone/iPad/iPod
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(userAgent);
   }
 
   async init() {
     await this.detectCountry();
-    this.initSound(); // Inicializar sonido simple
+    if (this.soundEnabled) {
+      this.initSound();
+    }
     this.setupEventListeners();
     await this.loadLeaderboard();
     this.startAutoRefresh();
   }
 
   initSound() {
-    // Sistema de sonido SIMPLE y EFECTIVO
+    if (!this.soundEnabled) return;
+    
     const soundUrl = 'https://www.myinstants.com/media/sounds/pop-cat-original-meme_3ObdYkj.mp3';
     
-    // Precargar múltiples instancias
     for (let i = 0; i < this.maxAudioElements; i++) {
       const audio = new Audio();
       audio.src = soundUrl;
@@ -58,31 +73,32 @@ class PopCatGame {
       this.audioElements.push(audio);
     }
     
-    console.log(`✅ ${this.maxAudioElements} elementos de audio precargados`);
+    console.log(`✅ Sonido activado - ${this.maxAudioElements} elementos precargados`);
     this.unlockAudio();
   }
 
   unlockAudio() {
+    if (!this.soundEnabled) return;
+    
     const unlock = () => {
       if (this.audioUnlocked) return;
       
       this.audioUnlocked = true;
       console.log('✅ Audio desbloqueado');
       
-      // Reproducir sonido silencioso para desbloquear completamente
       this.playUnlockSound();
     };
 
-    // Desbloquear en múltiples eventos
     document.addEventListener('click', unlock, { once: true });
     document.addEventListener('touchstart', unlock, { once: true });
     document.addEventListener('keydown', unlock, { once: true });
     
-    // Desbloqueo automático después de 1 segundo
     setTimeout(unlock, 1000);
   }
 
   playUnlockSound() {
+    if (!this.soundEnabled) return;
+    
     try {
       const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
       silentAudio.volume = 0;
@@ -91,18 +107,16 @@ class PopCatGame {
   }
 
   playPopSound() {
-    if (!this.audioUnlocked || !this.soundEnabled) return;
+    // No reproducir sonido en iPhone
+    if (!this.soundEnabled || !this.audioUnlocked) return;
     
     try {
       const audio = this.audioElements[this.currentAudioIndex];
       
-      // REINICIAR COMPLETAMENTE antes de reproducir
       audio.pause();
       audio.currentTime = 0;
       
-      // Reproducir SIN await - no bloquear
       audio.play().catch(error => {
-        // Solo log errores no relacionados con interacción del usuario
         if (!error.message.includes('user didn\'t interact') && 
             !error.message.includes('pause()') &&
             !error.message.includes('interrupted')) {
@@ -110,14 +124,41 @@ class PopCatGame {
         }
       });
       
-      // Rotar al siguiente audio
       this.currentAudioIndex = (this.currentAudioIndex + 1) % this.audioElements.length;
       
     } catch (error) {
-      // Silenciar errores por completo
+      // Silenciar errores
     }
   }
 
+  async handleClick() {
+    if (!this.userCountry || this.userCountry === 'Global') {
+      this.userCountry = 'Global';
+      this.userCountryCode = 'un';
+      this.updateUserCountryDisplay();
+    }
+
+    // ANIMACIÓN INMEDIATA
+    this.animateClick();
+    this.userClicks++;
+    
+    // CONTADORES
+    this.rotateCounter();
+    this.updateFloatingCounter();
+    this.animateNumber(this.myMiniClicks, this.userClicks, 300);
+    
+    // SONIDO SOLO SI ESTÁ HABILITADO (no en iPhone)
+    if (this.soundEnabled) {
+      setTimeout(() => {
+        this.playPopSound();
+      }, 0);
+    }
+    
+    // API CALL
+    this.sendClickToAPI();
+  }
+
+  // ... (el resto de los métodos se mantienen igual)
   async detectCountry() {
     try {
       console.log('🌍 Detecting country...');
@@ -174,29 +215,24 @@ class PopCatGame {
   updateUserCountryDisplay() {
     const flagUrl = `https://flagcdn.com/16x12/${this.userCountryCode}.png`;
     
-    // Actualizar bandera mini
     this.myMiniFlag.src = flagUrl;
     this.myMiniFlag.alt = this.userCountry;
     
-    // Actualizar contadores
     this.updateFloatingCounter();
     this.myMiniClicks.textContent = this.userClicks.toLocaleString();
   }
 
   setupEventListeners() {
-    // Click en el gato - ANIMACIÓN PRIMERO, SONIDO DESPUÉS
     this.catContainer.addEventListener('click', (e) => {
       e.preventDefault();
       this.handleClick();
     });
     
-    // Touch para móviles - OPTIMIZADO
     this.catContainer.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.handleClick();
     }, { passive: false });
 
-    // Tecla espacio
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
         e.preventDefault();
@@ -204,13 +240,11 @@ class PopCatGame {
       }
     });
     
-    // Toggle dashboard
     this.dashboardToggle.addEventListener('click', (e) => {
       e.stopPropagation();
       this.toggleDashboard();
     });
     
-    // Cerrar dashboard
     this.dashboardClose.addEventListener('click', (e) => {
       e.stopPropagation();
       this.toggleDashboard();
@@ -227,31 +261,6 @@ class PopCatGame {
       this.dashboardMinimized.style.display = 'block';
       this.dashboardExpanded.style.display = 'none';
     }
-  }
-
-  async handleClick() {
-    if (!this.userCountry || this.userCountry === 'Global') {
-      this.userCountry = 'Global';
-      this.userCountryCode = 'un';
-      this.updateUserCountryDisplay();
-    }
-
-    // 1. ANIMACIÓN INMEDIATA (CRÍTICA)
-    this.animateClick();
-    this.userClicks++;
-    
-    // 2. CONTADORES (IMPORTANTE)
-    this.rotateCounter();
-    this.updateFloatingCounter();
-    this.animateNumber(this.myMiniClicks, this.userClicks, 300);
-    
-    // 3. SONIDO - SEPARADO EN MICROTAREA (NO BLOQUEANTE)
-    setTimeout(() => {
-      this.playPopSound();
-    }, 0);
-    
-    // 4. API CALL (EN SEGUNDO PLANO)
-    this.sendClickToAPI();
   }
 
   async sendClickToAPI() {
@@ -281,25 +290,19 @@ class PopCatGame {
     }
   }
 
-  // Efecto de rotación y agrandamiento para el contador
   rotateCounter() {
-    // Remover clases anteriores
     this.floatingCounter.classList.remove('rotate-left', 'rotate-right', 'rotate-center', 'animating');
     
-    // Direcciones aleatorias
     const directions = ['rotate-left', 'rotate-right', 'rotate-center'];
     const randomDirection = directions[Math.floor(Math.random() * directions.length)];
     
-    // Aplicar las clases de animación
     this.floatingCounter.classList.add(randomDirection, 'animating');
     
-    // Remover las clases después de la animación
     setTimeout(() => {
       this.floatingCounter.classList.remove(randomDirection, 'animating');
     }, 200);
   }
 
-  // Actualizar contador flotante
   updateFloatingCounter() {
     this.floatingCounter.textContent = this.userClicks.toLocaleString();
   }
@@ -334,27 +337,23 @@ class PopCatGame {
   }
 
   animateClick() {
-    // ANIMACIÓN RÁPIDA Y OPTIMIZADA
     this.catContainer.classList.add('active');
     
     const clickEffect = this.catContainer.querySelector('.click-effect');
     clickEffect.textContent = '+1';
     clickEffect.style.animation = 'none';
     
-    // Forzar reflow y luego animación
     void clickEffect.offsetWidth;
     
     setTimeout(() => {
       clickEffect.style.animation = 'floatUp 1s ease-out forwards';
     }, 10);
 
-    // Transformación suave
     this.catContainer.style.transform = 'scale(0.95)';
     setTimeout(() => {
       this.catContainer.style.transform = 'scale(1)';
     }, 100);
 
-    // Remover clase active
     setTimeout(() => {
       this.catContainer.classList.remove('active');
     }, 100);
@@ -404,7 +403,6 @@ class PopCatGame {
       const item = document.createElement('div');
       item.className = 'leaderboard-item';
       
-      // Destacar el país del usuario
       if (row.country === this.userCountry) {
         item.style.background = 'rgba(255, 235, 59, 0.2)';
         item.style.border = '1px solid rgba(255, 235, 59, 0.5)';
@@ -426,7 +424,6 @@ class PopCatGame {
       this.leaderboardBody.appendChild(item);
     });
 
-    // Animar números del leaderboard
     setTimeout(() => {
       this.animateLeaderboardNumbers(previousCounts);
     }, 100);
@@ -447,7 +444,6 @@ class PopCatGame {
   }
 
   updateDashboardStats(leaderboard) {
-    // Actualizar país líder en dashboard minimizado
     if (leaderboard.length > 0) {
       const topCountry = leaderboard[0];
       const countryCode = topCountry.country_code || getCountryCode(topCountry.country);
