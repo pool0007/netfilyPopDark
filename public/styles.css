@@ -134,9 +134,9 @@ main {
 
 /* Cat Container */
 .cat-container {
- position: relative;
+  position: relative;
   display: inline-block;
-  margin: 100px 0 30px 0; /* Cambiado de 80px a 100px (más abajo) */
+  margin: 100px 0 30px 0;
   cursor: pointer;
   transition: transform 0.2s ease;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
@@ -438,19 +438,37 @@ main {
   justify-content: center;
   font-size: 1.1rem;
   text-align: center;
+  gap: 4px;
 }
 
-/* MEDALLAS MEJORADAS */
+/* ICONOS SVG PARA MEDALLAS */
+.medal-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.medal-gold {
+  color: #FFD700;
+}
+
+.medal-silver {
+  color: #C0C0C0;
+}
+
+.medal-bronze {
+  color: #CD7F32;
+}
+
+.medal-other {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* MEDALLAS MEJORADAS CON SVG */
 .leaderboard-item:nth-child(1) .rank {
   color: #FFD700;
   font-size: 1.3em;
   font-weight: 800;
-}
-
-.leaderboard-item:nth-child(1) .rank::before {
-  content: "🥇";
-  margin-right: 5px;
-  font-size: 1.2em;
 }
 
 .leaderboard-item:nth-child(2) .rank {
@@ -459,22 +477,10 @@ main {
   font-weight: 800;
 }
 
-.leaderboard-item:nth-child(2) .rank::before {
-  content: "🥈";
-  margin-right: 5px;
-  font-size: 1.1em;
-}
-
 .leaderboard-item:nth-child(3) .rank {
   color: #CD7F32;
   font-size: 1.2em;
   font-weight: 800;
-}
-
-.leaderboard-item:nth-child(3) .rank::before {
-  content: "🥉";
-  margin-right: 5px;
-  font-size: 1.1em;
 }
 
 .leaderboard-item .country {
@@ -562,7 +568,7 @@ main {
   
   /* POSICIÓN MÁS BAJA DEL GATO EN MÓVIL */
   .cat-container {
-margin: 80px 0 30px 0; /* Cambiado de 60px a 80px (más abajo en tablets) */
+    margin: 80px 0 30px 0;
   }
   
   main {
@@ -633,6 +639,11 @@ margin: 80px 0 30px 0; /* Cambiado de 60px a 80px (más abajo en tablets) */
     padding: 10px 15px;
     font-size: 0.9rem;
   }
+  
+  .medal-icon {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -661,7 +672,7 @@ margin: 80px 0 30px 0; /* Cambiado de 60px a 80px (más abajo en tablets) */
   
   /* POSICIÓN MÁS BAJA EN MÓVILES PEQUEÑOS */
   .cat-container {
-    margin: 70px 0 20px 0; /* Cambiado de 50px a 70px (más abajo en móviles pequeños) */
+    margin: 70px 0 20px 0;
   }
   
   main {
@@ -706,11 +717,9 @@ margin: 80px 0 30px 0; /* Cambiado de 60px a 80px (más abajo en tablets) */
     height: 18px;
   }
   
-  .leaderboard-item:nth-child(1) .rank::before,
-  .leaderboard-item:nth-child(2) .rank::before,
-  .leaderboard-item:nth-child(3) .rank::before {
-    margin-right: 3px;
-    font-size: 1em;
+  .medal-icon {
+    width: 14px;
+    height: 14px;
   }
 }
 
