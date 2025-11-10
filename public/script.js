@@ -3,22 +3,17 @@ class PopCatGame {
     this.userCountry = null;
     this.userCountryCode = null;
     this.userClicks = 0;
-    this.totalClicks = 0;
     this.leaderboardData = [];
     this.currentCounts = {};
     
     // Elementos principales
     this.catContainer = document.getElementById('catContainer');
     this.leaderboardBody = document.getElementById('leaderboardBody');
+    this.floatingCounter = document.getElementById('floatingCounter');
     
     // Dashboard minimizado
     this.dashboardMinimized = document.getElementById('dashboardMinimized');
     this.dashboardExpanded = document.getElementById('dashboardExpanded');
-    
-    // Elementos del contador personal
-    this.myClicksElement = document.getElementById('myClicks');
-    this.myFlagElement = document.getElementById('myFlag');
-    this.myFlagContainer = document.getElementById('myFlagContainer');
     
     // Elementos del dashboard minimizado
     this.topCountryFlag = document.getElementById('topCountryFlag');
@@ -94,18 +89,14 @@ class PopCatGame {
   }
 
   updateUserCountryDisplay() {
-    const flagUrl = `https://flagcdn.com/24x18/${this.userCountryCode}.png`;
-    
-    // Actualizar bandera principal
-    this.myFlagElement.src = flagUrl;
-    this.myFlagElement.alt = this.userCountry;
+    const flagUrl = `https://flagcdn.com/16x12/${this.userCountryCode}.png`;
     
     // Actualizar bandera mini
-    this.myMiniFlag.src = `https://flagcdn.com/16x12/${this.userCountryCode}.png`;
+    this.myMiniFlag.src = flagUrl;
     this.myMiniFlag.alt = this.userCountry;
     
-    // Actualizar contador personal
-    this.myClicksElement.textContent = this.userClicks.toLocaleString();
+    // Actualizar contadores
+    this.updateFloatingCounter();
     this.myMiniClicks.textContent = this.userClicks.toLocaleString();
   }
 
@@ -158,8 +149,11 @@ class PopCatGame {
     this.animateClick();
     this.userClicks++;
     
+    // Crear número flotante con dirección aleatoria
+    this.createFloatingNumber();
+    
     // Actualizar contadores con animación
-    this.animateNumber(this.myClicksElement, this.userClicks, 300);
+    this.updateFloatingCounter();
     this.animateNumber(this.myMiniClicks, this.userClicks, 300);
     
     try {
@@ -186,6 +180,37 @@ class PopCatGame {
     } catch (error) {
       console.error('Error sending click:', error.message);
     }
+  }
+
+  // Actualizar contador flotante
+  updateFloatingCounter() {
+    this.floatingCounter.textContent = this.userClicks.toLocaleString();
+  }
+
+  // Crear número flotante con animación
+  createFloatingNumber() {
+    const floatingNumber = document.createElement('div');
+    floatingNumber.className = 'floating-number';
+    floatingNumber.textContent = this.userClicks.toLocaleString();
+    
+    // Posición aleatoria (-50px a +50px del centro)
+    const randomX = (Math.random() * 100 - 50);
+    const randomY = -80; // Posición fija arriba del gato
+    
+    // Dirección aleatoria
+    const directions = ['left', 'center', 'right'];
+    const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+    
+    floatingNumber.classList.add(randomDirection);
+    floatingNumber.style.left = `calc(50% + ${randomX}px)`;
+    floatingNumber.style.top = `${randomY}px`;
+    
+    this.catContainer.appendChild(floatingNumber);
+    
+    // Remover después de la animación
+    setTimeout(() => {
+      floatingNumber.remove();
+    }, 1000);
   }
 
   animateNumber(element, targetValue, duration = 500) {
