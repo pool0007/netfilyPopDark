@@ -5,7 +5,7 @@ class PopCatGame {
     this.userClicks = 0;
     this.totalClicks = 0;
     this.leaderboardData = [];
-    this.currentCounts = {}; // Para animaciones
+    this.currentCounts = {}; // Para animaciones del dashboard
     this.catContainer = document.getElementById('catContainer');
     this.totalClicksElement = document.getElementById('totalClicks');
     this.leaderboardBody = document.getElementById('leaderboardBody');
@@ -54,10 +54,12 @@ class PopCatGame {
   }
 
   updateUserCountryDisplay() {
+    const flagUrl = getFlagUrl(this.userCountryCode);
     this.userCountryStat.innerHTML = `
-      <img src="https://flagcdn.com/w20/${this.userCountryCode}.png" 
+      <img src="${flagUrl}" 
            alt="${this.userCountry}" 
-           class="country-flag-small">
+           class="country-flag-small"
+           onerror="this.style.display='none'">
       ${this.userCountry}
     `;
   }
@@ -110,8 +112,8 @@ class PopCatGame {
     this.animateClick();
     this.userClicks++;
     
-    // Animación para clicks del usuario
-    this.animateNumber(this.userClicksStat, this.userClicks, 200);
+    // Actualizar clicks del usuario SIN animación en la pantalla principal
+    this.userClicksStat.textContent = this.userClicks.toLocaleString();
     
     try {
       const response = await fetch(`${this.baseURL}/click`, {
@@ -144,9 +146,13 @@ class PopCatGame {
     }
   }
 
-  // Función para animar números
+  // Función para animar números SOLO en el dashboard
   animateNumber(element, targetValue, duration = 500) {
     const startValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
+    
+    // Solo animar si hay un cambio significativo
+    if (startValue === targetValue) return;
+    
     const startTime = performance.now();
     
     const updateNumber = (currentTime) => {
@@ -159,10 +165,17 @@ class PopCatGame {
       const currentValue = Math.floor(startValue + (targetValue - startValue) * easeOut);
       element.textContent = currentValue.toLocaleString();
       
+      // Añadir clase de animación
+      element.classList.add('animating');
+      
       if (progress < 1) {
         requestAnimationFrame(updateNumber);
       } else {
         element.textContent = targetValue.toLocaleString();
+        // Remover clase de animación después de completar
+        setTimeout(() => {
+          element.classList.remove('animating');
+        }, 300);
       }
     };
     
@@ -214,7 +227,7 @@ class PopCatGame {
   updateLeaderboard(leaderboard) {
     if (!this.leaderboardBody) return;
     
-    // Guardar los valores actuales antes de actualizar
+    // Guardar los valores actuales antes de actualizar (para animaciones)
     const previousCounts = { ...this.currentCounts };
     
     leaderboard.forEach((row, index) => {
@@ -247,13 +260,13 @@ class PopCatGame {
       
       // Usar la función del archivo country-codes.js
       const countryCode = row.country_code || getCountryCode(row.country);
-      const flagUrl = `https://flagcdn.com/w24/${countryCode}.png`;
+      const flagUrl = getFlagUrl(countryCode);
       
       item.innerHTML = `
         <span class="rank">${index + 1}</span>
         <span class="country">
           <img src="${flagUrl}" alt="${row.country}" class="country-flag" 
-               onerror="this.src='https://flagcdn.com/w24/un.png'">
+               onerror="this.style.display='none'">
           ${row.country}
         </span>
         <span class="clicks" data-country="${row.country}">${parseInt(row.total_clicks).toLocaleString()}</span>
@@ -262,7 +275,7 @@ class PopCatGame {
       this.leaderboardBody.appendChild(item);
     });
 
-    // Animar los números del leaderboard
+    // Animar los números del leaderboard (SOLO en dashboard)
     setTimeout(() => {
       this.animateLeaderboardNumbers(previousCounts);
     }, 100);
@@ -278,8 +291,9 @@ class PopCatGame {
       const currentValue = this.currentCounts[country] || 0;
       const previousValue = previousCounts[country] || 0;
       
-      if (currentValue !== previousValue) {
-        this.animateNumber(element, currentValue, 800);
+      if (currentValue !== previousValue && currentValue > previousValue) {
+        // Solo animar si el número aumenta
+        this.animateNumber(element, currentValue, 600);
       }
     });
   }
@@ -296,8 +310,11 @@ class PopCatGame {
   updateTotalClicks(leaderboard) {
     const newTotalClicks = leaderboard.reduce((sum, row) => sum + parseInt(row.total_clicks || 0), 0);
     
+    // Actualizar sin animación en pantalla principal
+    this.totalClicksElement.textContent = newTotalClicks.toLocaleString();
+    
+    // Solo animar en el dashboard minimizado
     if (newTotalClicks !== this.totalClicks) {
-      this.animateNumber(this.totalClicksElement, newTotalClicks, 600);
       this.animateNumber(this.miniTotalClicks, newTotalClicks, 600);
       this.totalClicks = newTotalClicks;
     }
@@ -307,11 +324,13 @@ class PopCatGame {
     if (this.leaderboardData.length > 0) {
       const topCountry = this.leaderboardData[0];
       const countryCode = topCountry.country_code || getCountryCode(topCountry.country);
+      const flagUrl = getFlagUrl(countryCode);
       
       this.miniTopCountry.innerHTML = `
-        <img src="https://flagcdn.com/w16/${countryCode}.png" 
+        <img src="${flagUrl}" 
              alt="${topCountry.country}" 
-             class="country-flag-mini">
+             class="country-flag-mini"
+             onerror="this.style.display='none'">
         ${topCountry.country}
       `;
     } else {
