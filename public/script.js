@@ -11,9 +11,11 @@ class PopCatGame {
     this.leaderboardBody = document.getElementById('leaderboardBody');
     this.floatingCounter = document.getElementById('floatingCounter');
     
-    // Dashboard minimizado
+    // Dashboard
     this.dashboardMinimized = document.getElementById('dashboardMinimized');
     this.dashboardExpanded = document.getElementById('dashboardExpanded');
+    this.dashboardToggle = document.getElementById('dashboardToggle');
+    this.dashboardClose = document.getElementById('dashboardClose');
     
     // Elementos del dashboard minimizado
     this.topCountryFlag = document.getElementById('topCountryFlag');
@@ -101,11 +103,13 @@ class PopCatGame {
   }
 
   setupEventListeners() {
+    // Click en el gato
     this.catContainer.addEventListener('click', (e) => {
       e.preventDefault();
       this.handleClick();
     });
     
+    // Tecla espacio
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
         e.preventDefault();
@@ -113,14 +117,19 @@ class PopCatGame {
       }
     });
     
-    this.dashboardMinimized.addEventListener('click', () => {
+    // Toggle dashboard
+    this.dashboardToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
       this.toggleDashboard();
     });
     
-    document.getElementById('dashboardClose').addEventListener('click', () => {
+    // Cerrar dashboard
+    this.dashboardClose.addEventListener('click', (e) => {
+      e.stopPropagation();
       this.toggleDashboard();
     });
     
+    // Touch para móviles
     this.catContainer.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.handleClick();
@@ -148,9 +157,6 @@ class PopCatGame {
 
     this.animateClick();
     this.userClicks++;
-    
-    // Crear número flotante con dirección aleatoria
-    this.createFloatingNumber();
     
     // Actualizar contadores con animación
     this.updateFloatingCounter();
@@ -185,32 +191,6 @@ class PopCatGame {
   // Actualizar contador flotante
   updateFloatingCounter() {
     this.floatingCounter.textContent = this.userClicks.toLocaleString();
-  }
-
-  // Crear número flotante con animación
-  createFloatingNumber() {
-    const floatingNumber = document.createElement('div');
-    floatingNumber.className = 'floating-number';
-    floatingNumber.textContent = this.userClicks.toLocaleString();
-    
-    // Posición aleatoria (-60px a +60px del centro)
-    const randomX = (Math.random() * 120 - 60);
-    const randomY = -100; // Posición fija arriba del gato
-    
-    // Dirección aleatoria
-    const directions = ['left', 'center', 'right'];
-    const randomDirection = directions[Math.floor(Math.random() * directions.length)];
-    
-    floatingNumber.classList.add(randomDirection);
-    floatingNumber.style.left = `calc(50% + ${randomX}px)`;
-    floatingNumber.style.top = `${randomY}px`;
-    
-    this.catContainer.appendChild(floatingNumber);
-    
-    // Remover después de la animación
-    setTimeout(() => {
-      floatingNumber.remove();
-    }, 1200);
   }
 
   animateNumber(element, targetValue, duration = 500) {
