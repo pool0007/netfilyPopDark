@@ -46,7 +46,7 @@ class PopCatGame {
 
   initSound() {
     // URL del sonido original de popcat.click
-    const soundUrl = 'https://nyc3.digitaloceanspaces.com/popcat/popcat.mp3';
+    const soundUrl = 'https://www.myinstants.com/media/sounds/pop-cat-original-meme_3ObdYkj.mp3';
     
     // Crear múltiples instancias del sonido
     for (let i = 0; i < this.maxSounds; i++) {
