@@ -438,33 +438,76 @@ main {
   justify-content: center;
   font-size: 1.1rem;
   text-align: center;
-  gap: 4px;
+  gap: 6px;
 }
 
-/* ICONOS SVG PARA MEDALLAS */
+/* ESTRELLAS SVG MEJORADAS PARA MEDALLAS */
 .medal-icon {
-  width: 20px;
-  height: 20px;
   flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
 
 .medal-gold {
-  color: #FFD700;
+  color: #FFD700; /* Oro brillante */
 }
 
 .medal-silver {
-  color: #C0C0C0;
+  color: #C0C0C0; /* Plata */
 }
 
 .medal-bronze {
-  color: #CD7F32;
+  color: #CD7F32; /* Bronce */
 }
 
 .medal-other {
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* MEDALLAS MEJORADAS CON SVG */
+/* Efectos de brillo para las estrellas top */
+.leaderboard-item:nth-child(1) .medal-icon {
+  animation: goldGlow 2s ease-in-out infinite alternate;
+}
+
+.leaderboard-item:nth-child(2) .medal-icon {
+  animation: silverGlow 2.2s ease-in-out infinite alternate;
+}
+
+.leaderboard-item:nth-child(3) .medal-icon {
+  animation: bronzeGlow 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes goldGlow {
+  0% {
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)) brightness(1);
+    transform: scale(1);
+  }
+  100% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8)) brightness(1.2);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes silverGlow {
+  0% {
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)) brightness(1);
+  }
+  100% {
+    filter: drop-shadow(0 0 6px rgba(192, 192, 192, 0.6)) brightness(1.1);
+  }
+}
+
+@keyframes bronzeGlow {
+  0% {
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)) brightness(1);
+  }
+  100% {
+    filter: drop-shadow(0 0 5px rgba(205, 127, 50, 0.5)) brightness(1.1);
+  }
+}
+
+/* MEDALLAS MEJORADAS CON ESTRELLAS */
 .leaderboard-item:nth-child(1) .rank {
   color: #FFD700;
   font-size: 1.3em;
@@ -641,8 +684,8 @@ main {
   }
   
   .medal-icon {
-    width: 16px;
-    height: 16px;
+    width: 18px !important;
+    height: 18px !important;
   }
 }
 
@@ -718,8 +761,8 @@ main {
   }
   
   .medal-icon {
-    width: 14px;
-    height: 14px;
+    width: 16px !important;
+    height: 16px !important;
   }
 }
 
