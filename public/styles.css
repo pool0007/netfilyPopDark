@@ -76,10 +76,10 @@ main {
   min-height: 70vh;
 }
 
-/* Contador Flotante */
+/* Contador Flotante con efecto de rotación */
 .floating-counter {
   position: absolute;
-  top: -100px;
+  top: -80px; /* Subido un poco más */
   font-size: 4rem;
   font-weight: 900;
   color: white;
@@ -91,14 +91,28 @@ main {
     1px 1px 0 #000;
   z-index: 100;
   pointer-events: none;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease;
+  transform-origin: center;
 }
 
-/* Cat Container - 50% más grande */
+/* Efectos de rotación para el contador */
+.floating-counter.rotate-left {
+  transform: rotate(-5deg) translateX(-5px);
+}
+
+.floating-counter.rotate-right {
+  transform: rotate(5deg) translateX(5px);
+}
+
+.floating-counter.rotate-center {
+  transform: rotate(0deg) scale(1.05);
+}
+
+/* Cat Container - 50% más grande y subido */
 .cat-container {
   position: relative;
   display: inline-block;
-  margin: 120px 0 50px 0;
+  margin: 100px 0 50px 0; /* Reducido el margen superior para subir la imagen */
   cursor: pointer;
   transition: transform 0.2s ease;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
@@ -122,6 +136,7 @@ main {
   height: 100%;
   transition: opacity 0.1s ease;
   border-radius: 50%;
+  object-fit: cover; /* Asegura que la imagen no se recorte */
 }
 
 .cat-closed {
@@ -145,7 +160,7 @@ main {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 4rem; /* Un poco más grande */
+  font-size: 4rem;
   font-weight: bold;
   color: var(--secondary-color);
   opacity: 0;
@@ -197,6 +212,7 @@ main {
   justify-content: space-between;
   align-items: center;
   flex: 1;
+  gap: 15px;
 }
 
 .toggle-arrow {
@@ -211,6 +227,7 @@ main {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
 }
 
 .top-country {
@@ -221,6 +238,7 @@ main {
   padding: 8px 15px;
   border-radius: 25px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  flex: 1;
 }
 
 .trophy {
@@ -244,18 +262,25 @@ main {
 .country-name {
   font-weight: 600;
   font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
 }
 
 .clicks-count {
   font-weight: bold;
   color: var(--secondary-color);
   font-size: 1rem;
+  white-space: nowrap;
 }
 
 /* My Country Stats en Dashboard Mini */
 .my-country-stats {
   display: flex;
   align-items: center;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .my-mini-stats {
@@ -266,6 +291,7 @@ main {
   padding: 8px 15px;
   border-radius: 25px;
   border: 1px solid rgba(255, 235, 59, 0.5);
+  white-space: nowrap;
 }
 
 .my-clicks-count {
@@ -378,7 +404,7 @@ main {
   text-align: center;
 }
 
-/* MEDALLAS MEJORADAS - Usando SVG/Emojis más compatibles */
+/* MEDALLAS MEJORADAS */
 .leaderboard-item:nth-child(1) .rank {
   color: #FFD700; /* Gold */
   font-size: 1.3em;
@@ -482,20 +508,20 @@ main {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* Responsive */
+/* RESPONSIVE - MÓVIL */
 @media (max-width: 768px) {
   .logo {
     max-width: 250px;
   }
   
   .cat-images {
-    width: 450px; /* 50% más grande que 300px */
-    height: 450px; /* 50% más grande que 300px */
+    width: 450px;
+    height: 450px;
   }
   
   .floating-counter {
     font-size: 3.5rem;
-    top: -80px;
+    top: -60px; /* Más arriba en móvil */
   }
   
   .dashboard-minimized,
@@ -504,15 +530,55 @@ main {
     max-width: 95%;
   }
   
+  /* Dashboard minimizado en horizontal para móvil */
   .dashboard-minimized .dashboard-content {
-    flex-direction: column;
+    flex-direction: row; /* Mantener horizontal en móvil */
     gap: 10px;
   }
   
   .leaderboard-mini,
   .my-country-stats {
-    width: 100%;
+    width: auto;
     justify-content: center;
+    flex: 1;
+  }
+  
+  /* Achicar fuentes en móvil */
+  .top-country {
+    padding: 6px 10px;
+    gap: 5px;
+  }
+  
+  .country-name {
+    font-size: 0.75rem;
+    max-width: 60px;
+  }
+  
+  .clicks-count {
+    font-size: 0.9rem;
+  }
+  
+  .my-mini-stats {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  
+  .my-clicks-count {
+    font-size: 0.9rem;
+    min-width: 40px;
+  }
+  
+  .trophy {
+    font-size: 1rem;
+  }
+  
+  .rank-number {
+    font-size: 0.9rem;
+  }
+  
+  .country-flag-mini {
+    width: 16px;
+    height: 12px;
   }
   
   .leaderboard-header-full,
@@ -520,14 +586,6 @@ main {
     grid-template-columns: 50px 1fr 80px;
     padding: 10px 15px;
     font-size: 0.9rem;
-  }
-  
-  .top-country {
-    padding: 6px 12px;
-  }
-  
-  .country-name {
-    font-size: 0.8rem;
   }
 }
 
@@ -541,26 +599,44 @@ main {
   }
   
   .cat-images {
-    width: 375px; /* 50% más grande que 250px */
-    height: 375px; /* 50% más grande que 250px */
+    width: 375px;
+    height: 375px;
   }
   
   .floating-counter {
     font-size: 3rem;
-    top: -70px;
+    top: -50px; /* Aún más arriba en pantallas pequeñas */
   }
   
   .dashboard-minimized,
   .dashboard-expanded {
     width: 95%;
     max-width: 95%;
-    padding: 12px 15px;
+    padding: 10px 12px;
+  }
+  
+  /* Ajustes más compactos para móvil pequeño */
+  .dashboard-minimized .dashboard-content {
+    gap: 8px;
+  }
+  
+  .top-country {
+    padding: 5px 8px;
+  }
+  
+  .country-name {
+    font-size: 0.7rem;
+    max-width: 50px;
+  }
+  
+  .my-mini-stats {
+    padding: 5px 8px;
   }
   
   .leaderboard-header-full,
   .leaderboard-item {
     grid-template-columns: 40px 1fr 70px;
-    padding: 8px 12px;
+    padding: 8px 10px;
     font-size: 0.8rem;
   }
   
