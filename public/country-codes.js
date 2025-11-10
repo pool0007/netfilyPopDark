@@ -69,8 +69,3 @@ function getCountryCode(countryName, providedCode = null) {
   if (providedCode) return providedCode.toLowerCase();
   return COUNTRY_CODES[countryName] || 'un';
 }
-
-// Exportar para usar en otros archivos
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { COUNTRY_CODES, getCountryCode };
-}
