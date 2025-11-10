@@ -5,35 +5,12 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# Redirects específicos para API
 [[redirects]]
-  from = "/api/health"
-  to = "/.netlify/functions/api/health"
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
   status = 200
 
-[[redirects]]
-  from = "/api/test-db"
-  to = "/.netlify/functions/api/test-db"
-  status = 200
-
-[[redirects]]
-  from = "/api/leaderboard"
-  to = "/.netlify/functions/api/leaderboard"
-  status = 200
-
-[[redirects]]
-  from = "/api/click"
-  to = "/.netlify/functions/api/click"
-  status = 200
-
-[[redirects]]
-  from = "/api/test"
-  to = "/.netlify/functions/test"
-  status = 200
-
-# Para todas las demás rutas, servir archivos estáticos si existen, sino index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  conditions = {Language = ["en"], Country = ["US"]}
