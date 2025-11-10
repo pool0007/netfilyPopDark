@@ -1,63 +1,135 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detección de País con Bandera</title>
+  <title>Country Detection with Flags</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1a73e8;
+    }
+
+    .my-country {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: #f0f0f0;
-    }
-    .flag-container {
-      display: flex;
-      align-items: center;
       background: white;
       padding: 1rem 2rem;
-      border-radius: 10px;
+      border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      max-width: 400px;
+      margin: 1.5rem auto;
     }
-    .flag {
+
+    .my-country img {
       width: 40px;
       height: 30px;
-      margin-right: 12px;
+      margin-right: 10px;
       border-radius: 4px;
       object-fit: cover;
     }
-    .country {
-      font-size: 1.2em;
-      font-weight: bold;
+
+    .country-list {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 0 auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .country-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .country-item img {
+      width: 30px;
+      height: 22px;
+      margin-right: 10px;
+      border-radius: 4px;
+      object-fit: cover;
     }
   </style>
 </head>
 <body>
 
-  <div class="flag-container">
-    <img id="flag" class="flag" alt="Bandera">
-    <span id="country" class="country">Detectando país...</span>
+  <h1>🌎 Your Country & Top 25 Nations</h1>
+
+  <div class="my-country">
+    <img id="myFlag" alt="Flag">
+    <span id="myCountry">Detecting your country...</span>
+  </div>
+
+  <div class="country-list" id="countryList">
+    <h2>🌐 Top 25 Countries</h2>
   </div>
 
   <script>
-    // API gratuita de ipapi.co (sin clave)
+    // List of 25 most influential countries
+    const topCountries = [
+      { code: "US", name: "United States" },
+      { code: "CN", name: "China" },
+      { code: "JP", name: "Japan" },
+      { code: "DE", name: "Germany" },
+      { code: "IN", name: "India" },
+      { code: "GB", name: "United Kingdom" },
+      { code: "FR", name: "France" },
+      { code: "IT", name: "Italy" },
+      { code: "CA", name: "Canada" },
+      { code: "KR", name: "South Korea" },
+      { code: "BR", name: "Brazil" },
+      { code: "RU", name: "Russia" },
+      { code: "AU", name: "Australia" },
+      { code: "ES", name: "Spain" },
+      { code: "MX", name: "Mexico" },
+      { code: "ID", name: "Indonesia" },
+      { code: "SA", name: "Saudi Arabia" },
+      { code: "TR", name: "Turkey" },
+      { code: "CH", name: "Switzerland" },
+      { code: "SE", name: "Sweden" },
+      { code: "NL", name: "Netherlands" },
+      { code: "AR", name: "Argentina" },
+      { code: "ZA", name: "South Africa" },
+      { code: "SG", name: "Singapore" },
+      { code: "AE", name: "United Arab Emirates" }
+    ];
+
+    const countryListEl = document.getElementById("countryList");
+
+    // Render list of countries with flags
+    topCountries.forEach(c => {
+      const div = document.createElement("div");
+      div.className = "country-item";
+      div.innerHTML = `
+        <img src="https://flagsapi.com/${c.code}/flat/64.png" alt="${c.name}">
+        <span>${c.name}</span>
+      `;
+      countryListEl.appendChild(div);
+    });
+
+    // Detect user's country
     fetch("https://ipapi.co/json/")
       .then(response => response.json())
       .then(data => {
         const countryName = data.country_name;
-        const countryCode = data.country_code; // Ej: "AR", "US", "ES"
-
-        // Bandera desde flagsapi.com
-        const flagUrl = `https://flagsapi.com/${countryCode}/flat/64.png`;
-
-        document.getElementById("flag").src = flagUrl;
-        document.getElementById("country").textContent = countryName;
+        const countryCode = data.country_code;
+        document.getElementById("myFlag").src = `https://flagsapi.com/${countryCode}/flat/64.png`;
+        document.getElementById("myCountry").textContent = countryName;
       })
       .catch(err => {
-        console.error("Error obteniendo país:", err);
-        document.getElementById("country").textContent = "No se pudo detectar el país";
+        document.getElementById("myCountry").textContent = "Could not detect your country";
+        console.error(err);
       });
   </script>
 
