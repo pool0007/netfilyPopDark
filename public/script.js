@@ -191,21 +191,21 @@ class PopCatGame {
     }
   }
 
-  // Efecto de rotación para el contador
+  // Efecto de rotación y agrandamiento para el contador
   rotateCounter() {
     // Remover clases anteriores
-    this.floatingCounter.classList.remove('rotate-left', 'rotate-right', 'rotate-center');
+    this.floatingCounter.classList.remove('rotate-left', 'rotate-right', 'rotate-center', 'animating');
     
     // Direcciones aleatorias
     const directions = ['rotate-left', 'rotate-right', 'rotate-center'];
     const randomDirection = directions[Math.floor(Math.random() * directions.length)];
     
-    // Aplicar la clase de rotación
-    this.floatingCounter.classList.add(randomDirection);
+    // Aplicar las clases de animación
+    this.floatingCounter.classList.add(randomDirection, 'animating');
     
-    // Remover la clase después de la animación
+    // Remover las clases después de la animación
     setTimeout(() => {
-      this.floatingCounter.classList.remove(randomDirection);
+      this.floatingCounter.classList.remove(randomDirection, 'animating');
     }, 200);
   }
 
