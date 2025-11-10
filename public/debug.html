@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug PopCat</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 5px 0; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Debug PopCat</h1>
+    <button onclick="testAPI()">Test API</button>
+    <button onclick="testClick()">Test Click</button>
+    <button onclick="testLeaderboard()">Test Leaderboard</button>
+    <div id="logs"></div>
+
+    <script>
+        const baseURL = window.location.origin;
+        const logs = document.getElementById('logs');
+
+        function log(message, type = '') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logs.appendChild(div);
+            console.log(message);
+        }
+
+        async function testAPI() {
+            try {
+                log('Testing API health...');
+                const response = await fetch(`${baseURL}/api/health`);
+                const data = await response.json();
+                log(`✅ Health: ${JSON.stringify(data)}`, 'success');
+            } catch (error) {
+                log(`❌ Health error: ${error}`, 'error');
+            }
+        }
+
+        async function testClick() {
+            try {
+                log('Testing click...');
+                const response = await fetch(`${baseURL}/api/click`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: 'TestCountry' })
+                });
+                const data = await response.json();
+                log(`✅ Click: ${JSON.stringify(data)}`, 'success');
+            } catch (error) {
+                log(`❌ Click error: ${error}`, 'error');
+            }
+        }
+
+        async function testLeaderboard() {
+            try {
+                log('Testing leaderboard...');
+                const response = await fetch(`${baseURL}/api/leaderboard`);
+                const data = await response.json();
+                log(`✅ Leaderboard: ${JSON.stringify(data)}`, 'success');
+            } catch (error) {
+                log(`❌ Leaderboard error: ${error}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
