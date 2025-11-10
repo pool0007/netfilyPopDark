@@ -131,34 +131,6 @@ class PopCatGame {
     }
   }
 
-  async handleClick() {
-    if (!this.userCountry || this.userCountry === 'Global') {
-      this.userCountry = 'Global';
-      this.userCountryCode = 'un';
-      this.updateUserCountryDisplay();
-    }
-
-    // ANIMACIÓN INMEDIATA
-    this.animateClick();
-    this.userClicks++;
-    
-    // CONTADORES
-    this.rotateCounter();
-    this.updateFloatingCounter();
-    this.animateNumber(this.myMiniClicks, this.userClicks, 300);
-    
-    // SONIDO SOLO SI ESTÁ HABILITADO (no en iPhone)
-    if (this.soundEnabled) {
-      setTimeout(() => {
-        this.playPopSound();
-      }, 0);
-    }
-    
-    // API CALL
-    this.sendClickToAPI();
-  }
-
-  // ... (el resto de los métodos se mantienen igual)
   async detectCountry() {
     try {
       console.log('🌍 Detecting country...');
@@ -263,6 +235,33 @@ class PopCatGame {
     }
   }
 
+  async handleClick() {
+    if (!this.userCountry || this.userCountry === 'Global') {
+      this.userCountry = 'Global';
+      this.userCountryCode = 'un';
+      this.updateUserCountryDisplay();
+    }
+
+    // ANIMACIÓN INMEDIATA
+    this.animateClick();
+    this.userClicks++;
+    
+    // CONTADORES
+    this.rotateCounter();
+    this.updateFloatingCounter();
+    this.animateNumber(this.myMiniClicks, this.userClicks, 300);
+    
+    // SONIDO SOLO SI ESTÁ HABILITADO (no en iPhone)
+    if (this.soundEnabled) {
+      setTimeout(() => {
+        this.playPopSound();
+      }, 0);
+    }
+    
+    // API CALL
+    this.sendClickToAPI();
+  }
+
   async sendClickToAPI() {
     try {
       const response = await fetch(`${this.baseURL}/click`, {
@@ -290,19 +289,25 @@ class PopCatGame {
     }
   }
 
+  // Efecto de rotación y agrandamiento para el contador
   rotateCounter() {
+    // Remover clases anteriores
     this.floatingCounter.classList.remove('rotate-left', 'rotate-right', 'rotate-center', 'animating');
     
+    // Direcciones aleatorias
     const directions = ['rotate-left', 'rotate-right', 'rotate-center'];
     const randomDirection = directions[Math.floor(Math.random() * directions.length)];
     
+    // Aplicar las clases de animación
     this.floatingCounter.classList.add(randomDirection, 'animating');
     
+    // Remover las clases después de la animación
     setTimeout(() => {
       this.floatingCounter.classList.remove(randomDirection, 'animating');
     }, 200);
   }
 
+  // Actualizar contador flotante
   updateFloatingCounter() {
     this.floatingCounter.textContent = this.userClicks.toLocaleString();
   }
@@ -403,6 +408,7 @@ class PopCatGame {
       const item = document.createElement('div');
       item.className = 'leaderboard-item';
       
+      // Destacar el país del usuario
       if (row.country === this.userCountry) {
         item.style.background = 'rgba(255, 235, 59, 0.2)';
         item.style.border = '1px solid rgba(255, 235, 59, 0.5)';
@@ -411,8 +417,29 @@ class PopCatGame {
       const countryCode = row.country_code || getCountryCode(row.country);
       const flagUrl = `https://flagcdn.com/24x18/${countryCode}.png`;
       
+      // Determinar qué icono usar según la posición
+      let medalIcon = '';
+      let medalClass = 'medal-other';
+      
+      if (index === 0) {
+        medalIcon = '<svg class="medal-icon medal-gold"><use href="#icon-gold-medal"/></svg>';
+        medalClass = 'medal-gold';
+      } else if (index === 1) {
+        medalIcon = '<svg class="medal-icon medal-silver"><use href="#icon-silver-medal"/></svg>';
+        medalClass = 'medal-silver';
+      } else if (index === 2) {
+        medalIcon = '<svg class="medal-icon medal-bronze"><use href="#icon-bronze-medal"/></svg>';
+        medalClass = 'medal-bronze';
+      } else {
+        medalIcon = '<svg class="medal-icon medal-other"><use href="#icon-other-rank"/></svg>';
+        medalClass = 'medal-other';
+      }
+      
       item.innerHTML = `
-        <span class="rank">${index + 1}</span>
+        <span class="rank ${medalClass}">
+          ${medalIcon}
+          ${index + 1}
+        </span>
         <span class="country">
           <img src="${flagUrl}" alt="${row.country}" class="country-flag" 
                onerror="this.style.display='none'">
@@ -424,6 +451,7 @@ class PopCatGame {
       this.leaderboardBody.appendChild(item);
     });
 
+    // Animar números del leaderboard
     setTimeout(() => {
       this.animateLeaderboardNumbers(previousCounts);
     }, 100);
@@ -444,6 +472,7 @@ class PopCatGame {
   }
 
   updateDashboardStats(leaderboard) {
+    // Actualizar país líder en dashboard minimizado
     if (leaderboard.length > 0) {
       const topCountry = leaderboard[0];
       const countryCode = topCountry.country_code || getCountryCode(topCountry.country);
