@@ -40,6 +40,7 @@
             margin: 10px 0;
             border-radius: 8px;
             border-left: 4px solid #f59e0b;
+            word-break: break-all;
         }
         .success { 
             border-left-color: #10b981;
@@ -54,15 +55,23 @@
             padding: 10px;
             border-radius: 5px;
             overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .url {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🐛 Debug PopCat - Database Test</h1>
-        <p>Base URL: <code id="baseUrl"></code></p>
+        <p>Base URL: <span class="url" id="baseUrl"></span></p>
         
         <div>
+            <button onclick="testFunction()">Test Basic Function</button>
             <button onclick="testAPI()">Test API Health</button>
             <button onclick="testDB()">Test Database Connection</button>
             <button onclick="testClick()">Test Click (TestCountry)</button>
@@ -86,12 +95,37 @@
             console.log(message);
         }
 
+        async function testFunction() {
+            try {
+                log('Testing basic function endpoint...');
+                const response = await fetch(`${baseURL}/test`);
+                const text = await response.text();
+                log(`📥 Raw response: <pre>${text}</pre>`);
+                
+                try {
+                    const data = JSON.parse(text);
+                    log(`✅ Basic Function: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                } catch (e) {
+                    log(`❌ Not JSON - Received HTML? First 200 chars: ${text.substring(0, 200)}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Function test error: ${error.message}`, 'error');
+            }
+        }
+
         async function testAPI() {
             try {
                 log('Testing API health endpoint...');
                 const response = await fetch(`${baseURL}/health`);
-                const data = await response.json();
-                log(`✅ Health Check: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                const text = await response.text();
+                log(`📥 Raw response: <pre>${text}</pre>`);
+                
+                try {
+                    const data = JSON.parse(text);
+                    log(`✅ Health Check: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                } catch (e) {
+                    log(`❌ Not JSON - Received HTML? First 200 chars: ${text.substring(0, 200)}`, 'error');
+                }
             } catch (error) {
                 log(`❌ Health error: ${error.message}`, 'error');
             }
@@ -101,11 +135,18 @@
             try {
                 log('Testing database connection...');
                 const response = await fetch(`${baseURL}/test-db`);
-                const data = await response.json();
-                if (data.success) {
-                    log(`✅ Database Connection: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
-                } else {
-                    log(`❌ Database error: ${data.error}`, 'error');
+                const text = await response.text();
+                log(`📥 Raw response: <pre>${text}</pre>`);
+                
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        log(`✅ Database Connection: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                    } else {
+                        log(`❌ Database error: ${data.error}`, 'error');
+                    }
+                } catch (e) {
+                    log(`❌ Not JSON - Received HTML? First 200 chars: ${text.substring(0, 200)}`, 'error');
                 }
             } catch (error) {
                 log(`❌ Database test error: ${error.message}`, 'error');
@@ -124,11 +165,18 @@
                     body: JSON.stringify({ country: 'TestCountry' })
                 });
                 
-                const data = await response.json();
-                if (data.success) {
-                    log(`✅ Click Test: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
-                } else {
-                    log(`❌ Click error: ${data.error}`, 'error');
+                const text = await response.text();
+                log(`📥 Raw response: <pre>${text}</pre>`);
+                
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        log(`✅ Click Test: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                    } else {
+                        log(`❌ Click error: ${data.error}`, 'error');
+                    }
+                } catch (e) {
+                    log(`❌ Not JSON - Received HTML? First 200 chars: ${text.substring(0, 200)}`, 'error');
                 }
             } catch (error) {
                 log(`❌ Click test error: ${error.message}`, 'error');
@@ -139,11 +187,18 @@
             try {
                 log('Testing leaderboard endpoint...');
                 const response = await fetch(`${baseURL}/leaderboard`);
-                const data = await response.json();
-                if (data.success) {
-                    log(`✅ Leaderboard: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
-                } else {
-                    log(`❌ Leaderboard error: ${data.error}`, 'error');
+                const text = await response.text();
+                log(`📥 Raw response: <pre>${text}</pre>`);
+                
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        log(`✅ Leaderboard: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                    } else {
+                        log(`❌ Leaderboard error: ${data.error}`, 'error');
+                    }
+                } catch (e) {
+                    log(`❌ Not JSON - Received HTML? First 200 chars: ${text.substring(0, 200)}`, 'error');
                 }
             } catch (error) {
                 log(`❌ Leaderboard error: ${error.message}`, 'error');
@@ -156,7 +211,7 @@
 
         // Test automático al cargar
         setTimeout(() => {
-            testAPI();
+            testFunction();
         }, 1000);
     </script>
 </body>
