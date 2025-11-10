@@ -17,7 +17,8 @@ class PopCatGame {
     this.userClicksStat = document.getElementById('userClicksStat');
     this.userRankStat = document.getElementById('userRankStat');
     
-this.baseURL = window.location.origin + '/api';
+    // IMPORTANTE: Para Netlify Functions
+    this.baseURL = window.location.origin + '/api';
     this.isDashboardExpanded = false;
     
     this.init();
@@ -25,6 +26,7 @@ this.baseURL = window.location.origin + '/api';
 
   async init() {
     console.log('🚀 Initializing PopCat Game...');
+    console.log('🌐 Base URL:', this.baseURL);
     await this.detectCountry();
     this.setupEventListeners();
     await this.loadLeaderboard();
@@ -93,10 +95,12 @@ this.baseURL = window.location.origin + '/api';
   async handleClick() {
     if (!this.userCountry || this.userCountry === 'Desconocido') {
       console.log('❌ No country detected, cannot send click');
+      alert('País no detectado. Intenta recargar la página.');
       return;
     }
 
     console.log('🐱 Click detected for country:', this.userCountry);
+    console.log('📤 Sending to:', `${this.baseURL}/click`);
     
     // Efecto visual inmediato
     this.animateClick();
@@ -106,7 +110,7 @@ this.baseURL = window.location.origin + '/api';
     this.userClicksStat.textContent = this.userClicks.toLocaleString();
 
     try {
-      const response = await fetch(`${this.baseURL}/api/click`, {
+      const response = await fetch(`${this.baseURL}/click`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -115,11 +119,15 @@ this.baseURL = window.location.origin + '/api';
         body: JSON.stringify({ country: this.userCountry }),
       });
 
+      console.log('📤 Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
       }
       
       const data = await response.json();
+      console.log('📥 Response data:', data);
 
       if (data.success) {
         this.updateLeaderboard(data.leaderboard);
@@ -128,9 +136,11 @@ this.baseURL = window.location.origin + '/api';
         console.log('🎯 Click registered successfully');
       } else {
         console.error('❌ Server returned error:', data.error);
+        alert('Error del servidor: ' + data.error);
       }
     } catch (error) {
       console.error('❌ Error sending click:', error);
+      alert('Error al enviar click: ' + error.message);
     }
   }
 
@@ -161,13 +171,15 @@ this.baseURL = window.location.origin + '/api';
 
   async loadLeaderboard() {
     try {
-      const response = await fetch(`${this.baseURL}/api/leaderboard`);
+      console.log('📊 Loading leaderboard from:', `${this.baseURL}/leaderboard`);
+      const response = await fetch(`${this.baseURL}/leaderboard`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('📥 Leaderboard data:', data);
 
       if (data.success) {
         this.leaderboardData = data.leaderboard;
