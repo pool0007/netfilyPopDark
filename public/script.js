@@ -5,7 +5,7 @@ class PopCatGame {
     this.userClicks = 0;
     this.totalClicks = 0;
     this.leaderboardData = [];
-    this.currentCounts = {}; // Para animaciones del dashboard
+    this.currentCounts = {};
     this.catContainer = document.getElementById('catContainer');
     this.totalClicksElement = document.getElementById('totalClicks');
     this.leaderboardBody = document.getElementById('leaderboardBody');
@@ -34,12 +34,27 @@ class PopCatGame {
 
   async detectCountry() {
     try {
-      console.log('🌍 Detecting country with ipapi...');
-      const res = await fetch('https://ipapi.co/json/');
-      const data = await res.json();
+      console.log('🌍 Detecting country...');
       
-      this.userCountry = data.country_name || 'Unknown';
-      this.userCountryCode = data.country_code ? data.country_code.toLowerCase() : 'un';
+      // Intentar con ipapi.co primero
+      let countryData = await this.tryIpApi();
+      
+      // Si falla, intentar con ipify
+      if (!countryData) {
+        countryData = await this.tryIpify();
+      }
+      
+      // Si aún falla, usar un país por defecto
+      if (!countryData) {
+        countryData = {
+          country: 'Unknown',
+          countryCode: 'un'
+        };
+        console.log('⚠️ Using fallback country detection');
+      }
+      
+      this.userCountry = countryData.country;
+      this.userCountryCode = countryData.countryCode;
       
       console.log('✅ Country detected:', this.userCountry, 'Code:', this.userCountryCode);
       
@@ -47,21 +62,92 @@ class PopCatGame {
       
     } catch (error) {
       console.error('❌ Error detecting country:', error);
+      // Usar valores por defecto en caso de error
       this.userCountry = 'Unknown';
       this.userCountryCode = 'un';
-      this.userCountryStat.textContent = 'Not detected';
+      this.updateUserCountryDisplay();
+    }
+  }
+
+  async tryIpApi() {
+    try {
+      const res = await fetch('https://ipapi.co/json/', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        },
+        timeout: 5000
+      });
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const data = await res.json();
+      
+      if (data.country_name && data.country_code) {
+        return {
+          country: data.country_name,
+          countryCode: data.country_code.toLowerCase()
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.log('❌ ipapi.co failed:', error.message);
+      return null;
+    }
+  }
+
+  async tryIpify() {
+    try {
+      // Primero obtener la IP
+      const ipRes = await fetch('https://api.ipify.org?format=json', {
+        timeout: 5000
+      });
+      
+      if (!ipRes.ok) throw new Error(`HTTP ${ipRes.status}`);
+      
+      const ipData = await ipRes.json();
+      const ip = ipData.ip;
+      
+      // Luego obtener información de la IP
+      const infoRes = await fetch(`https://ipapi.co/${ip}/json/`, {
+        timeout: 5000
+      });
+      
+      if (!infoRes.ok) throw new Error(`HTTP ${infoRes.status}`);
+      
+      const infoData = await infoRes.json();
+      
+      if (infoData.country_name && infoData.country_code) {
+        return {
+          country: infoData.country_name,
+          countryCode: infoData.country_code.toLowerCase()
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.log('❌ ipify method failed:', error.message);
+      return null;
     }
   }
 
   updateUserCountryDisplay() {
-    const flagUrl = getFlagUrl(this.userCountryCode);
-    this.userCountryStat.innerHTML = `
-      <img src="${flagUrl}" 
-           alt="${this.userCountry}" 
-           class="country-flag-small"
-           onerror="this.style.display='none'">
-      ${this.userCountry}
-    `;
+    const flagUrl = `https://flagcdn.com/24x18/${this.userCountryCode}.png`;
+    
+    if (this.userCountry === 'Unknown') {
+      this.userCountryStat.innerHTML = `
+        <span style="color: #ff6b6b;">🌐 Country not detected</span>
+      `;
+    } else {
+      this.userCountryStat.innerHTML = `
+        <img src="${flagUrl}" 
+             alt="${this.userCountry}" 
+             class="country-flag-small"
+             onerror="this.style.display='none'">
+        ${this.userCountry}
+      `;
+    }
   }
 
   setupEventListeners() {
@@ -104,15 +190,18 @@ class PopCatGame {
   }
 
   async handleClick() {
+    // Permitir clicks incluso si el país no se detecta
     if (!this.userCountry || this.userCountry === 'Unknown') {
-      alert('Country not detected. Please reload the page.');
-      return;
+      // Usar un país por defecto
+      this.userCountry = 'Global';
+      this.userCountryCode = 'un';
+      this.updateUserCountryDisplay();
     }
 
     this.animateClick();
     this.userClicks++;
     
-    // Actualizar clicks del usuario SIN animación en la pantalla principal
+    // Actualizar clicks del usuario
     this.userClicksStat.textContent = this.userClicks.toLocaleString();
     
     try {
@@ -139,18 +228,16 @@ class PopCatGame {
         this.updateTotalClicks(data.leaderboard);
         this.updateDashboardStats();
       } else {
-        alert('Server error: ' + data.error);
+        console.error('Server error:', data.error);
       }
     } catch (error) {
-      alert('Error sending click: ' + error.message);
+      console.error('Error sending click:', error.message);
     }
   }
 
-  // Función para animar números SOLO en el dashboard
   animateNumber(element, targetValue, duration = 500) {
     const startValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
     
-    // Solo animar si hay un cambio significativo
     if (startValue === targetValue) return;
     
     const startTime = performance.now();
@@ -159,20 +246,16 @@ class PopCatGame {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function para animación suave
       const easeOut = 1 - Math.pow(1 - progress, 3);
-      
       const currentValue = Math.floor(startValue + (targetValue - startValue) * easeOut);
       element.textContent = currentValue.toLocaleString();
       
-      // Añadir clase de animación
       element.classList.add('animating');
       
       if (progress < 1) {
         requestAnimationFrame(updateNumber);
       } else {
         element.textContent = targetValue.toLocaleString();
-        // Remover clase de animación después de completar
         setTimeout(() => {
           element.classList.remove('animating');
         }, 300);
@@ -227,7 +310,6 @@ class PopCatGame {
   updateLeaderboard(leaderboard) {
     if (!this.leaderboardBody) return;
     
-    // Guardar los valores actuales antes de actualizar (para animaciones)
     const previousCounts = { ...this.currentCounts };
     
     leaderboard.forEach((row, index) => {
@@ -252,15 +334,13 @@ class PopCatGame {
       const item = document.createElement('div');
       item.className = 'leaderboard-item';
       
-      // Destacar el país del usuario
       if (row.country === this.userCountry) {
         item.style.background = 'rgba(255, 235, 59, 0.2)';
         item.style.border = '1px solid rgba(255, 235, 59, 0.5)';
       }
       
-      // Usar la función del archivo country-codes.js
       const countryCode = row.country_code || getCountryCode(row.country);
-      const flagUrl = getFlagUrl(countryCode);
+      const flagUrl = `https://flagcdn.com/24x18/${countryCode}.png`;
       
       item.innerHTML = `
         <span class="rank">${index + 1}</span>
@@ -275,7 +355,6 @@ class PopCatGame {
       this.leaderboardBody.appendChild(item);
     });
 
-    // Animar los números del leaderboard (SOLO en dashboard)
     setTimeout(() => {
       this.animateLeaderboardNumbers(previousCounts);
     }, 100);
@@ -292,7 +371,6 @@ class PopCatGame {
       const previousValue = previousCounts[country] || 0;
       
       if (currentValue !== previousValue && currentValue > previousValue) {
-        // Solo animar si el número aumenta
         this.animateNumber(element, currentValue, 600);
       }
     });
@@ -310,10 +388,8 @@ class PopCatGame {
   updateTotalClicks(leaderboard) {
     const newTotalClicks = leaderboard.reduce((sum, row) => sum + parseInt(row.total_clicks || 0), 0);
     
-    // Actualizar sin animación en pantalla principal
     this.totalClicksElement.textContent = newTotalClicks.toLocaleString();
     
-    // Solo animar en el dashboard minimizado
     if (newTotalClicks !== this.totalClicks) {
       this.animateNumber(this.miniTotalClicks, newTotalClicks, 600);
       this.totalClicks = newTotalClicks;
@@ -324,7 +400,7 @@ class PopCatGame {
     if (this.leaderboardData.length > 0) {
       const topCountry = this.leaderboardData[0];
       const countryCode = topCountry.country_code || getCountryCode(topCountry.country);
-      const flagUrl = getFlagUrl(countryCode);
+      const flagUrl = `https://flagcdn.com/24x18/${countryCode}.png`;
       
       this.miniTopCountry.innerHTML = `
         <img src="${flagUrl}" 
@@ -343,6 +419,35 @@ class PopCatGame {
       this.loadLeaderboard();
     }, 3000);
   }
+}
+
+// Polyfill para timeout en fetch
+if (!window.fetch) {
+  console.log('Fetch not supported');
+} else {
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    const [resource, config = {}] = args;
+    const timeout = config.timeout || 8000;
+    
+    const controller = new AbortController();
+    const { signal } = controller;
+    
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeout);
+    
+    return originalFetch(resource, {
+      ...config,
+      signal
+    }).then(response => {
+      clearTimeout(timeoutId);
+      return response;
+    }).catch(error => {
+      clearTimeout(timeoutId);
+      throw error;
+    });
+  };
 }
 
 document.addEventListener('DOMContentLoaded', () => {
