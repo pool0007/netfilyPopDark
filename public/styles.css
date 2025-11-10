@@ -48,28 +48,19 @@ body::before {
   flex-direction: column;
 }
 
-/* Header - Sin efecto glass */
+/* Header - Solo logo */
 header {
   text-align: center;
   margin-bottom: 10px;
-  padding: 20px;
+  padding: 20px 0;
   background: transparent;
 }
 
-header h1 {
-  font-size: 3.5rem;
-  margin-bottom: 10px;
-  background: linear-gradient(45deg, var(--secondary-color), var(--accent-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-  font-weight: 800;
-}
-
-.subtitle {
-  font-size: 1.2rem;
-  opacity: 0.9;
-  margin-bottom: 10px;
+.logo {
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
 }
 
 /* Main Content */
@@ -82,13 +73,13 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: 70vh;
 }
 
 /* Contador Flotante */
 .floating-counter {
   position: absolute;
-  top: -80px;
+  top: -100px;
   font-size: 4rem;
   font-weight: 900;
   color: white;
@@ -103,11 +94,11 @@ main {
   transition: all 0.3s ease;
 }
 
-/* Cat Container */
+/* Cat Container - 50% más grande */
 .cat-container {
   position: relative;
   display: inline-block;
-  margin: 100px 0 30px 0;
+  margin: 120px 0 50px 0;
   cursor: pointer;
   transition: transform 0.2s ease;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
@@ -119,8 +110,8 @@ main {
 
 .cat-images {
   position: relative;
-  width: 400px;
-  height: 400px;
+  width: 600px; /* 50% más grande que 400px */
+  height: 600px; /* 50% más grande que 400px */
 }
 
 .cat-img {
@@ -154,7 +145,7 @@ main {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 3rem;
+  font-size: 4rem; /* Un poco más grande */
   font-weight: bold;
   color: var(--secondary-color);
   opacity: 0;
@@ -171,28 +162,18 @@ main {
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -150px) scale(1.5);
+    transform: translate(-50%, -200px) scale(1.5);
   }
 }
 
-.instructions {
-  font-size: 1.3rem;
-  opacity: 0.9;
-  margin-top: 20px;
-  background: var(--card-bg);
-  padding: 10px 20px;
-  border-radius: 50px;
-  display: inline-block;
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--card-border);
-}
-
-/* Dashboard Minimizado */
+/* Dashboard Minimizado - Mismo ancho que expandido */
 .dashboard-minimized {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  max-width: 600px;
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
@@ -204,11 +185,10 @@ main {
   transition: all 0.3s ease;
 }
 
-.dashboard-header {
+.dashboard-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
 }
 
 /* Leaderboard Mini */
@@ -302,15 +282,20 @@ main {
 }
 
 .dashboard-expanded .dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
 }
 
 .dashboard-expanded h2 {
   text-align: center;
   font-size: 1.5rem;
   color: var(--secondary-color);
+  margin: 0;
 }
 
 .toggle-arrow {
@@ -387,36 +372,41 @@ main {
   text-align: center;
 }
 
-/* Nuevos iconos de ranking */
+/* MEDALLAS MEJORADAS - Usando SVG/Emojis más compatibles */
 .leaderboard-item:nth-child(1) .rank {
-  color: gold;
+  color: #FFD700; /* Gold */
   font-size: 1.3em;
-  position: relative;
+  font-weight: 800;
 }
 
 .leaderboard-item:nth-child(1) .rank::before {
   content: "🥇";
   margin-right: 5px;
+  font-size: 1.2em;
 }
 
 .leaderboard-item:nth-child(2) .rank {
-  color: silver;
+  color: #C0C0C0; /* Silver */
   font-size: 1.2em;
+  font-weight: 800;
 }
 
 .leaderboard-item:nth-child(2) .rank::before {
   content: "🥈";
   margin-right: 5px;
+  font-size: 1.1em;
 }
 
 .leaderboard-item:nth-child(3) .rank {
-  color: #cd7f32;
+  color: #CD7F32; /* Bronze */
   font-size: 1.2em;
+  font-weight: 800;
 }
 
 .leaderboard-item:nth-child(3) .rank::before {
   content: "🥉";
   margin-right: 5px;
+  font-size: 1.1em;
 }
 
 .leaderboard-item .country {
@@ -469,26 +459,26 @@ main {
 
 /* Animaciones para el contador flotante */
 @keyframes floatLeft {
-  0% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(-5deg); }
-  100% { transform: translateY(-20px) rotate(-10deg); }
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  50% { transform: translateY(-15px) rotate(-8deg); opacity: 0.8; }
+  100% { transform: translateY(-30px) rotate(-15deg); opacity: 0; }
 }
 
 @keyframes floatRight {
-  0% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(5deg); }
-  100% { transform: translateY(-20px) rotate(10deg); }
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  50% { transform: translateY(-15px) rotate(8deg); opacity: 0.8; }
+  100% { transform: translateY(-30px) rotate(15deg); opacity: 0; }
 }
 
 @keyframes floatCenter {
-  0% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-15px) scale(1.1); }
-  100% { transform: translateY(-30px) scale(1.2); }
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translateY(-20px) scale(1.2); opacity: 0.8; }
+  100% { transform: translateY(-40px) scale(1.4); opacity: 0; }
 }
 
 .floating-number {
   position: absolute;
-  font-size: 4rem;
+  font-size: 4.5rem; /* Un poco más grande */
   font-weight: 900;
   color: white;
   text-shadow: 
@@ -503,15 +493,15 @@ main {
 }
 
 .floating-number.left {
-  animation: floatLeft 1s ease-out forwards;
+  animation: floatLeft 1.2s ease-out forwards;
 }
 
 .floating-number.right {
-  animation: floatRight 1s ease-out forwards;
+  animation: floatRight 1.2s ease-out forwards;
 }
 
 .floating-number.center {
-  animation: floatCenter 1s ease-out forwards;
+  animation: floatCenter 1.2s ease-out forwards;
 }
 
 /* Scrollbar */
@@ -535,23 +525,36 @@ main {
 
 /* Responsive */
 @media (max-width: 768px) {
-  header h1 {
-    font-size: 2.5rem;
+  .logo {
+    max-width: 250px;
   }
   
   .cat-images {
-    width: 300px;
-    height: 300px;
+    width: 450px; /* 50% más grande que 300px */
+    height: 450px; /* 50% más grande que 300px */
   }
   
   .floating-counter,
   .floating-number {
-    font-size: 3rem;
+    font-size: 3.5rem;
+    top: -80px;
   }
   
+  .dashboard-minimized,
   .dashboard-expanded {
+    width: 95%;
+    max-width: 95%;
+  }
+  
+  .dashboard-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .leaderboard-mini,
+  .my-country-stats {
     width: 100%;
-    border-radius: 0;
+    justify-content: center;
   }
   
   .leaderboard-header-full,
@@ -575,29 +578,26 @@ main {
     padding: 10px;
   }
   
-  header h1 {
-    font-size: 2rem;
+  .logo {
+    max-width: 200px;
   }
   
   .cat-images {
-    width: 250px;
-    height: 250px;
+    width: 375px; /* 50% más grande que 250px */
+    height: 375px; /* 50% más grande que 250px */
   }
   
   .floating-counter,
   .floating-number {
-    font-size: 2.5rem;
+    font-size: 3rem;
+    top: -70px;
   }
   
-  .dashboard-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: stretch;
-  }
-  
-  .leaderboard-mini,
-  .my-country-stats {
-    justify-content: center;
+  .dashboard-minimized,
+  .dashboard-expanded {
+    width: 95%;
+    max-width: 95%;
+    padding: 12px 15px;
   }
   
   .leaderboard-header-full,
@@ -610,5 +610,29 @@ main {
   .country-flag {
     width: 24px;
     height: 18px;
+  }
+  
+  /* Medallas en móvil */
+  .leaderboard-item:nth-child(1) .rank::before,
+  .leaderboard-item:nth-child(2) .rank::before,
+  .leaderboard-item:nth-child(3) .rank::before {
+    margin-right: 3px;
+    font-size: 1em;
+  }
+}
+
+/* Fallback para medallas si los emojis no se muestran */
+@supports not (content: "🥇") {
+  .leaderboard-item:nth-child(1) .rank::before {
+    content: "1st";
+    color: #FFD700;
+  }
+  .leaderboard-item:nth-child(2) .rank::before {
+    content: "2nd";
+    color: #C0C0C0;
+  }
+  .leaderboard-item:nth-child(3) .rank::before {
+    content: "3rd";
+    color: #CD7F32;
   }
 }
