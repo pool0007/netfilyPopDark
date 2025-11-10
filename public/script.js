@@ -1,6 +1,7 @@
 class PopCatGame {
   constructor() {
     this.userCountry = null;
+    this.userCountryCode = null;
     this.userClicks = 0;
     this.totalClicks = 0;
     this.leaderboardData = [];
@@ -8,7 +9,6 @@ class PopCatGame {
     this.totalClicksElement = document.getElementById('totalClicks');
     this.leaderboardBody = document.getElementById('leaderboardBody');
     
-    // Dashboard elements
     this.dashboardMinimized = document.getElementById('dashboardMinimized');
     this.dashboardExpanded = document.getElementById('dashboardExpanded');
     this.miniTotalClicks = document.getElementById('miniTotalClicks');
@@ -17,7 +17,6 @@ class PopCatGame {
     this.userClicksStat = document.getElementById('userClicksStat');
     this.userRankStat = document.getElementById('userRankStat');
     
-    // IMPORTANTE: Para Netlify Functions
     this.baseURL = window.location.origin + '/api';
     this.isDashboardExpanded = false;
     
@@ -25,8 +24,6 @@ class PopCatGame {
   }
 
   async init() {
-    console.log('🚀 Initializing PopCat Game...');
-    console.log('🌐 Base URL:', this.baseURL);
     await this.detectCountry();
     this.setupEventListeners();
     await this.loadLeaderboard();
@@ -36,27 +33,41 @@ class PopCatGame {
 
   async detectCountry() {
     try {
-      console.log('🌍 Detecting country...');
+      console.log('🌍 Detecting country with ipapi...');
       const res = await fetch('https://ipapi.co/json/');
       const data = await res.json();
-      this.userCountry = data.country_name || 'Desconocido';
-      this.userCountryStat.textContent = this.userCountry;
-      console.log('✅ Country detected:', this.userCountry);
+      
+      this.userCountry = data.country_name || 'Unknown';
+      this.userCountryCode = data.country_code ? data.country_code.toLowerCase() : 'un';
+      
+      console.log('✅ Country detected:', this.userCountry, 'Code:', this.userCountryCode);
+      
+      // Actualizar la UI con bandera
+      this.updateUserCountryDisplay();
+      
     } catch (error) {
       console.error('❌ Error detecting country:', error);
-      this.userCountry = 'Desconocido';
-      this.userCountryStat.textContent = 'No detectado';
+      this.userCountry = 'Unknown';
+      this.userCountryCode = 'un';
+      this.userCountryStat.textContent = 'Not detected';
     }
   }
 
+  updateUserCountryDisplay() {
+    this.userCountryStat.innerHTML = `
+      <img src="https://flagcdn.com/w20/${this.userCountryCode}.png" 
+           alt="${this.userCountry}" 
+           style="margin-right: 8px; border-radius: 2px;">
+      ${this.userCountry}
+    `;
+  }
+
   setupEventListeners() {
-    // Click en el gato
     this.catContainer.addEventListener('click', (e) => {
       e.preventDefault();
       this.handleClick();
     });
     
-    // Tecla espacio
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
         e.preventDefault();
@@ -64,7 +75,6 @@ class PopCatGame {
       }
     });
     
-    // Dashboard toggle
     document.getElementById('dashboardToggle').addEventListener('click', () => {
       this.toggleDashboard();
     });
@@ -73,7 +83,6 @@ class PopCatGame {
       this.toggleDashboard();
     });
     
-    // Touch para móviles
     this.catContainer.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.handleClick();
@@ -93,19 +102,12 @@ class PopCatGame {
   }
 
   async handleClick() {
-    if (!this.userCountry || this.userCountry === 'Desconocido') {
-      console.log('❌ No country detected, cannot send click');
-      alert('País no detectado. Intenta recargar la página.');
+    if (!this.userCountry || this.userCountry === 'Unknown') {
+      alert('Country not detected. Please reload the page.');
       return;
     }
 
-    console.log('🐱 Click detected for country:', this.userCountry);
-    console.log('📤 Sending to:', `${this.baseURL}/click`);
-    
-    // Efecto visual inmediato
     this.animateClick();
-    
-    // Contador local
     this.userClicks++;
     this.userClicksStat.textContent = this.userClicks.toLocaleString();
 
@@ -116,39 +118,33 @@ class PopCatGame {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ country: this.userCountry }),
+        body: JSON.stringify({ 
+          country: this.userCountry,
+          country_code: this.userCountryCode 
+        }),
       });
 
-      console.log('📤 Response status:', response.status);
-
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('📥 Response data:', data);
 
       if (data.success) {
         this.updateLeaderboard(data.leaderboard);
         this.updateTotalClicks(data.leaderboard);
         this.updateDashboardStats();
-        console.log('🎯 Click registered successfully');
       } else {
-        console.error('❌ Server returned error:', data.error);
-        alert('Error del servidor: ' + data.error);
+        alert('Server error: ' + data.error);
       }
     } catch (error) {
-      console.error('❌ Error sending click:', error);
-      alert('Error al enviar click: ' + error.message);
+      alert('Error sending click: ' + error.message);
     }
   }
 
   animateClick() {
-    // Animación del gato
     this.catContainer.classList.add('active');
     
-    // Efecto de texto +1
     const clickEffect = this.catContainer.querySelector('.click-effect');
     clickEffect.textContent = '+1';
     clickEffect.style.animation = 'none';
@@ -157,13 +153,11 @@ class PopCatGame {
       clickEffect.style.animation = 'floatUp 1s ease-out forwards';
     }, 10);
 
-    // Efecto de pulsación
     this.catContainer.style.transform = 'scale(0.95)';
     setTimeout(() => {
       this.catContainer.style.transform = 'scale(1)';
     }, 100);
 
-    // Quitar clase active después de la animación
     setTimeout(() => {
       this.catContainer.classList.remove('active');
     }, 100);
@@ -171,7 +165,6 @@ class PopCatGame {
 
   async loadLeaderboard() {
     try {
-      console.log('📊 Loading leaderboard from:', `${this.baseURL}/leaderboard`);
       const response = await fetch(`${this.baseURL}/leaderboard`);
       
       if (!response.ok) {
@@ -179,19 +172,15 @@ class PopCatGame {
       }
       
       const data = await response.json();
-      console.log('📥 Leaderboard data:', data);
 
       if (data.success) {
         this.leaderboardData = data.leaderboard;
         this.updateLeaderboard(data.leaderboard);
         this.updateTotalClicks(data.leaderboard);
         this.updateDashboardStats();
-        console.log('📈 Leaderboard updated successfully');
-      } else {
-        console.error('❌ Leaderboard error:', data.error);
       }
     } catch (error) {
-      console.error('❌ Error loading leaderboard:', error);
+      console.error('Error loading leaderboard:', error);
     }
   }
 
@@ -205,7 +194,7 @@ class PopCatGame {
       emptyItem.className = 'leaderboard-item';
       emptyItem.innerHTML = `
         <span class="rank">-</span>
-        <span class="country">No hay datos aún</span>
+        <span class="country">No data yet</span>
         <span class="clicks">0</span>
       `;
       this.leaderboardBody.appendChild(emptyItem);
@@ -222,14 +211,15 @@ class PopCatGame {
         item.style.border = '1px solid rgba(255, 235, 59, 0.5)';
       }
       
-      // Obtener código de país para la bandera
-      const countryCode = this.getCountryCode(row.country);
-      const flagUrl = `https://flagcdn.com/w40/${countryCode}.png`;
+      // Usar la función del archivo externo
+      const countryCode = row.country_code || getCountryCode(row.country);
+      const flagUrl = `https://flagcdn.com/w24/${countryCode}.png`;
       
       item.innerHTML = `
         <span class="rank">${index + 1}</span>
         <span class="country">
-          <img src="${flagUrl}" alt="${row.country}" class="country-flag" onerror="this.style.display='none'">
+          <img src="${flagUrl}" alt="${row.country}" class="country-flag" 
+               onerror="this.src='https://flagcdn.com/w24/un.png'">
           ${row.country}
         </span>
         <span class="clicks">${parseInt(row.total_clicks).toLocaleString()}</span>
@@ -238,34 +228,7 @@ class PopCatGame {
       this.leaderboardBody.appendChild(item);
     });
 
-    // Actualizar ranking del usuario
     this.updateUserRank(leaderboard);
-  }
-
-  getCountryCode(countryName) {
-    const countryMap = {
-      'Argentina': 'ar',
-      'Chile': 'cl',
-      'España': 'es',
-      'Mexico': 'mx',
-      'Estados Unidos': 'us',
-      'United States': 'us',
-      'Brazil': 'br',
-      'Colombia': 'co',
-      'Peru': 'pe',
-      'France': 'fr',
-      'Germany': 'de',
-      'Italy': 'it',
-      'United Kingdom': 'gb',
-      'Japan': 'jp',
-      'China': 'cn',
-      'India': 'in',
-      'Australia': 'au',
-      'Canada': 'ca',
-      'Russia': 'ru'
-    };
-    
-    return countryMap[countryName] || 'un';
   }
 
   updateUserRank(leaderboard) {
@@ -283,39 +246,30 @@ class PopCatGame {
   }
 
   updateDashboardStats() {
-    // Actualizar clicks totales
     this.miniTotalClicks.textContent = this.totalClicks.toLocaleString();
     
-    // Actualizar país líder
     if (this.leaderboardData.length > 0) {
       const topCountry = this.leaderboardData[0];
-      this.miniTopCountry.textContent = topCountry.country;
+      const countryCode = topCountry.country_code || getCountryCode(topCountry.country);
+      
+      this.miniTopCountry.innerHTML = `
+        <img src="https://flagcdn.com/w16/${countryCode}.png" 
+             alt="${topCountry.country}" 
+             style="margin-right: 4px; border-radius: 1px; vertical-align: middle;">
+        ${topCountry.country}
+      `;
     } else {
       this.miniTopCountry.textContent = '-';
     }
   }
 
   startAutoRefresh() {
-    // Actualizar leaderboard cada 3 segundos
     setInterval(() => {
       this.loadLeaderboard();
     }, 3000);
-    
-    console.log('🔄 Auto-refresh started (3s interval)');
   }
 }
 
-// Inicializar cuando se carga la página
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('📄 DOM loaded, starting game...');
   window.popCatGame = new PopCatGame();
-});
-
-// Manejar errores no capturados
-window.addEventListener('error', (event) => {
-  console.error('💥 Global error:', event.error);
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('💥 Unhandled promise rejection:', event.reason);
 });
