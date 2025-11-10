@@ -134,9 +134,9 @@ main {
 
 /* Cat Container */
 .cat-container {
-  position: relative;
+ position: relative;
   display: inline-block;
-  margin: 80px 0 30px 0;
+  margin: 100px 0 30px 0; /* Cambiado de 80px a 100px (más abajo) */
   cursor: pointer;
   transition: transform 0.2s ease;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
