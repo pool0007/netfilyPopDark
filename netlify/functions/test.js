@@ -5,6 +5,7 @@ export const handler = async (event) => {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Content-Type': 'application/json'
   };
 
   if (event.httpMethod === 'OPTIONS') {
@@ -18,8 +19,7 @@ export const handler = async (event) => {
       message: '✅ Test function is working!',
       method: event.httpMethod,
       path: event.path,
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development'
+      timestamp: new Date().toISOString()
     })
   };
 };
