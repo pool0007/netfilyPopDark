@@ -24,6 +24,12 @@ class PopCatGame {
     this.myMiniFlag = document.getElementById('myMiniFlag');
     this.myMiniClicks = document.getElementById('myMiniClicks');
     
+    // Sistema de sonido
+    this.soundPool = [];
+    this.maxSounds = 12; // Más instancias para clicks ultra-rápidos
+    this.currentSoundIndex = 0;
+    this.audioUnlocked = false;
+    
     this.baseURL = window.location.origin + '/api';
     this.isDashboardExpanded = false;
     
@@ -32,9 +38,87 @@ class PopCatGame {
 
   async init() {
     await this.detectCountry();
+    this.initSound();
     this.setupEventListeners();
     await this.loadLeaderboard();
     this.startAutoRefresh();
+  }
+
+  initSound() {
+    // URL del sonido original de popcat.click
+    const soundUrl = 'https://nyc3.digitaloceanspaces.com/popcat/popcat.mp3';
+    
+    // Crear múltiples instancias del sonido
+    for (let i = 0; i < this.maxSounds; i++) {
+      const audio = new Audio();
+      audio.src = soundUrl;
+      audio.preload = 'auto';
+      audio.volume = 0.8; // Volumen más alto
+      this.soundPool.push(audio);
+    }
+
+    console.log(`🔊 Cargadas ${this.maxSounds} instancias de sonido`);
+    
+    // Desbloquear audio en móviles
+    this.unlockAudio();
+  }
+
+  unlockAudio() {
+    const unlock = () => {
+      if (this.audioUnlocked) return;
+      
+      // Reproducir sonido silencioso para desbloquear audio
+      const silentSound = new Audio();
+      silentSound.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+      silentSound.volume = 0;
+      
+      silentSound.play().then(() => {
+        this.audioUnlocked = true;
+        console.log('✅ Audio desbloqueado');
+        silentSound.remove();
+      }).catch(e => {
+        console.log('❌ Audio no desbloqueado:', e);
+      });
+    };
+
+    // Intentar desbloquear en diferentes eventos
+    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('touchstart', unlock, { once: true });
+    document.addEventListener('keydown', unlock, { once: true });
+    
+    // Desbloquear automáticamente después de 1 segundo
+    setTimeout(unlock, 1000);
+  }
+
+  playPopSound() {
+    if (!this.soundPool.length) return;
+    
+    try {
+      const sound = this.soundPool[this.currentSoundIndex];
+      
+      // INTERRUMPIR Y REINICIAR - clave para sonidos rápidos
+      sound.pause();
+      sound.currentTime = 0;
+      
+      // Reproducir inmediatamente
+      const playPromise = sound.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Silenciar errores comunes de reproducción
+          if (!error.message.includes('user didn\'t interact') && 
+              !error.message.includes('interaction')) {
+            console.log('🔇 Error reproduciendo sonido:', error.message);
+          }
+        });
+      }
+      
+      // Rotar al siguiente sonido en la cola
+      this.currentSoundIndex = (this.currentSoundIndex + 1) % this.maxSounds;
+      
+    } catch (error) {
+      // Silenciar errores de reproducción
+    }
   }
 
   async detectCountry() {
@@ -109,6 +193,12 @@ class PopCatGame {
       this.handleClick();
     });
     
+    // Touch para móviles - MEJORADO
+    this.catContainer.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      this.handleClick();
+    }, { passive: false });
+
     // Tecla espacio
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
@@ -128,12 +218,6 @@ class PopCatGame {
       e.stopPropagation();
       this.toggleDashboard();
     });
-    
-    // Touch para móviles
-    this.catContainer.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      this.handleClick();
-    }, { passive: false });
   }
 
   toggleDashboard() {
@@ -157,6 +241,9 @@ class PopCatGame {
 
     this.animateClick();
     this.userClicks++;
+    
+    // Reproducir sonido INMEDIATAMENTE - antes que cualquier otra cosa
+    this.playPopSound();
     
     // Efecto de rotación en el contador
     this.rotateCounter();
