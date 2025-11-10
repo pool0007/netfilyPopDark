@@ -562,7 +562,7 @@ main {
   
   /* POSICIÓN MÁS BAJA DEL GATO EN MÓVIL */
   .cat-container {
-    margin: 60px 0 30px 0;
+margin: 80px 0 30px 0; /* Cambiado de 60px a 80px (más abajo en tablets) */
   }
   
   main {
@@ -661,7 +661,7 @@ main {
   
   /* POSICIÓN MÁS BAJA EN MÓVILES PEQUEÑOS */
   .cat-container {
-    margin: 50px 0 20px 0;
+    margin: 70px 0 20px 0; /* Cambiado de 50px a 70px (más abajo en móviles pequeños) */
   }
   
   main {
