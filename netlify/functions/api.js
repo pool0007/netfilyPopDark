@@ -29,11 +29,6 @@ const initializeDatabase = async () => {
       console.log('✅ Added country_code column');
     }
     
-    // OPCIONAL: Descomenta la siguiente línea si quieres reiniciar completamente la base de datos
-    // await client.query('DELETE FROM clicks');
-    
-    console.log('✅ Database initialized - Ready for all countries');
-    
     client.release();
     dbInitialized = true;
     return true;
@@ -53,7 +48,6 @@ const headers = {
 // Función para obtener código de país
 const getCountryCode = (countryName) => {
   const countryMap = {
-    // Países más comunes para mejor performance
     'United States': 'us', 'China': 'cn', 'Japan': 'jp', 'Germany': 'de',
     'India': 'in', 'United Kingdom': 'gb', 'France': 'fr', 'Italy': 'it',
     'Brazil': 'br', 'Canada': 'ca', 'South Korea': 'kr', 'Russia': 'ru',
@@ -65,7 +59,29 @@ const getCountryCode = (countryName) => {
   return countryMap[countryName] || 'un';
 };
 
+// Función para resetear la base de datos
+const resetDatabase = async () => {
+  try {
+    const client = await pool.connect();
+    
+    // Opción 1: Limpiar toda la tabla
+    await client.query('DELETE FROM clicks');
+    
+    // Opción 2: O puedes resetear los contadores a 0 pero mantener los países
+    // await client.query('UPDATE clicks SET total_clicks = 0');
+    
+    client.release();
+    
+    console.log('🗑️ Database completely reset');
+    return { success: true, message: 'Database reset successfully' };
+  } catch (error) {
+    console.error('❌ Reset failed:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 export const handler = async (event) => {
+  // Configurar headers CORS primero
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
@@ -73,6 +89,7 @@ export const handler = async (event) => {
   const path = event.path.replace('/api/', '');
   
   try {
+    // Health check - no necesita DB
     if (path === 'health' && event.httpMethod === 'GET') {
       return {
         statusCode: 200,
@@ -85,6 +102,30 @@ export const handler = async (event) => {
       };
     }
     
+    // Reset endpoint - manejar antes de inicializar DB
+    if (path === 'reset' && event.httpMethod === 'POST') {
+      const dbReady = await initializeDatabase();
+      if (!dbReady) {
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({
+            success: false,
+            error: 'Database not available'
+          })
+        };
+      }
+      
+      const resetResult = await resetDatabase();
+      
+      return {
+        statusCode: resetResult.success ? 200 : 500,
+        headers,
+        body: JSON.stringify(resetResult)
+      };
+    }
+    
+    // Para otras rutas, inicializar DB normal
     const dbReady = await initializeDatabase();
     if (!dbReady) {
       return {
@@ -111,7 +152,7 @@ export const handler = async (event) => {
         };
       }
       
-      // PERMITIR CUALQUIER PAÍS - Sin restricciones
+      // PERMITIR CUALQUIER PAÍS
       const finalCountryCode = country_code || getCountryCode(country);
       
       const updateResult = await pool.query(
@@ -137,7 +178,7 @@ export const handler = async (event) => {
           leaderboard: leaderboardResult.rows,
           country: country,
           newCount: updateResult.rows[0]?.total_clicks,
-          message: 'Click registered successfully - All countries welcome!'
+          message: 'Click registered successfully'
         })
       };
     }
@@ -158,27 +199,7 @@ export const handler = async (event) => {
       };
     }
     
-    if (path === 'reset' && event.httpMethod === 'POST') {
-      // Endpoint para resetear completamente la base de datos
-      const client = await pool.connect();
-      await client.query('DELETE FROM clicks');
-      client.release();
-      
-      console.log('🗑️ Database completely reset');
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          message: 'Database reset successfully - All data cleared',
-          timestamp: new Date().toISOString()
-        })
-      };
-    }
-    
     if (path === 'countries' && event.httpMethod === 'GET') {
-      // Endpoint para ver todos los países en la base de datos
       const result = await pool.query(
         "SELECT country, total_clicks FROM clicks ORDER BY country ASC"
       );
@@ -194,6 +215,7 @@ export const handler = async (event) => {
       };
     }
     
+    // Endpoint no encontrado
     return {
       statusCode: 404,
       headers,
