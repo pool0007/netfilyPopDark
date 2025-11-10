@@ -30,21 +30,24 @@
 
   <!-- Dashboard Minimizado -->
   <div class="dashboard-minimized" id="dashboardMinimized">
-    <div class="dashboard-content">
-      <div class="leaderboard-mini">
-        <div class="top-country">
-          <span class="trophy">🏆</span>
-          <span class="rank-number">1</span>
-          <img id="topCountryFlag" src="https://flagcdn.com/16x12/un.png" alt="Top Country" class="country-flag-mini">
-          <span class="country-name" id="topCountryName">-</span>
-          <span class="clicks-count" id="topCountryClicks">0</span>
+    <div class="dashboard-header" id="dashboardToggle">
+      <div class="toggle-arrow">▲</div>
+      <div class="dashboard-content">
+        <div class="leaderboard-mini">
+          <div class="top-country">
+            <span class="trophy">🏆</span>
+            <span class="rank-number">1</span>
+            <img id="topCountryFlag" src="https://flagcdn.com/16x12/un.png" alt="Top Country" class="country-flag-mini">
+            <span class="country-name" id="topCountryName">-</span>
+            <span class="clicks-count" id="topCountryClicks">0</span>
+          </div>
         </div>
-      </div>
-      
-      <div class="my-country-stats">
-        <div class="my-mini-stats">
-          <img id="myMiniFlag" src="https://flagcdn.com/16x12/un.png" alt="My Country" class="country-flag-mini">
-          <span class="my-clicks-count" id="myMiniClicks">0</span>
+        
+        <div class="my-country-stats">
+          <div class="my-mini-stats">
+            <img id="myMiniFlag" src="https://flagcdn.com/16x12/un.png" alt="My Country" class="country-flag-mini">
+            <span class="my-clicks-count" id="myMiniClicks">0</span>
+          </div>
         </div>
       </div>
     </div>
@@ -53,8 +56,8 @@
   <!-- Dashboard Expandido -->
   <div class="dashboard-expanded" id="dashboardExpanded" style="display: none;">
     <div class="dashboard-header" id="dashboardClose">
-      <h2>📊 Leaderboard Global</h2>
       <div class="toggle-arrow">▼</div>
+      <h2>📊 Leaderboard Global</h2>
     </div>
     
     <div class="leaderboard-full">
