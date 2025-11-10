@@ -1,13 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DARK POP</title>
+  <title>PopCat Click</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Símbolos SVG para las medallas -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="icon-gold-medal" viewBox="0 0 24 24">
+      <title>Medalla de Oro</title>
+      <path fill="currentColor" d="M23 12c0 5.52-4.48 10-10 10S3 17.52 3 12 7.48 2 13 2s10 4.48 10 10zm-8.19-4.38l-2.44 2.12 2.43 2.12c.22.2.22.53 0 .74l-2.43 2.12 2.44 2.13c.22.19.22.52 0 .73l-2.91 2.54c-.22.19-.57.19-.79 0l-2.91-2.54c-.22-.21-.22-.54 0-.73l2.44-2.13-2.43-2.12c-.22-.21-.22-.54 0-.74l2.43-2.12-2.44-2.12c-.22-.21-.22-.54 0-.74l2.91-2.53c.22-.19.57-.19.79 0l2.91 2.53c.22.2.22.53 0 .74z"/>
+    </symbol>
+    <symbol id="icon-silver-medal" viewBox="0 0 24 24">
+      <title>Medalla de Plata</title>
+      <path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 14h-2v-2h2v2zm0-4h-2V6h2v6z"/>
+    </symbol>
+    <symbol id="icon-bronze-medal" viewBox="0 0 24 24">
+      <title>Medalla de Bronce</title>
+      <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9.5h10v2H7z"/>
+    </symbol>
+    <symbol id="icon-other-rank" viewBox="0 0 24 24">
+      <title>Posición</title>
+      <path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+    </symbol>
+  </svg>
+
   <div class="container">
     <header>
       <img src="https://i.ibb.co/93NrD9S6/POPDARK.png" alt="PopCat" class="logo" onerror="this.style.display='none'">
@@ -25,6 +45,7 @@
       </div>
     </main>
   </div>
+
 
   <div class="dashboard-minimized" id="dashboardMinimized">
     <div class="dashboard-header" id="dashboardToggle">
@@ -50,16 +71,17 @@
     </div>
   </div>
 
+  <!-- Dashboard Expandido -->
   <div class="dashboard-expanded" id="dashboardExpanded" style="display: none;">
     <div class="dashboard-header" id="dashboardClose">
       <div class="toggle-arrow">▼</div>
-      <h2>Global Leaderboard</h2>
+      <h2>📊 Leaderboard Global</h2>
     </div>
     
     <div class="leaderboard-full">
       <div class="leaderboard-header-full">
         <span class="rank-header">#</span>
-        <span class="country-header">Country</span>
+        <span class="country-header">País</span>
         <span class="clicks-header">Clicks</span>
       </div>
       <div id="leaderboardBody" class="leaderboard-body-full"></div>
