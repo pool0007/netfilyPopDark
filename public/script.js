@@ -24,15 +24,12 @@ class PopCatGame {
     this.myMiniFlag = document.getElementById('myMiniFlag');
     this.myMiniClicks = document.getElementById('myMiniClicks');
     
-    // SISTEMA DE SONIDO MEJORADO CON RESPALDO
-    this.audioContext = null;
-    this.audioBuffer = null;
-    this.audioSources = [];
-    this.audioElements = []; // Respaldo con Audio elements
-    this.maxConcurrentSounds = 6;
-    this.isAudioReady = false;
+    // SISTEMA DE SONIDO MEJORADO - COMPLETAMENTE SEPARADO
+    this.audioElements = [];
+    this.maxAudioElements = 8;
     this.currentAudioIndex = 0;
     this.audioUnlocked = false;
+    this.soundEnabled = true;
     
     this.baseURL = window.location.origin + '/api';
     this.isDashboardExpanded = false;
@@ -42,59 +39,27 @@ class PopCatGame {
 
   async init() {
     await this.detectCountry();
-    this.initSound(); // No esperar, cargar en segundo plano
+    this.initSound(); // Inicializar sonido simple
     this.setupEventListeners();
     await this.loadLeaderboard();
     this.startAutoRefresh();
   }
 
   initSound() {
-    // Intentar Web Audio API primero
-    this.initWebAudio();
-    
-    // Inicializar respaldo con Audio elements
-    this.initAudioFallback();
-    
-    // Desbloquear audio
-    this.unlockAudio();
-  }
-
-  async initWebAudio() {
-    try {
-      if (!window.AudioContext && !window.webkitAudioContext) {
-        throw new Error('Web Audio API no soportada');
-      }
-      
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      
-      // Cargar el buffer de audio
-      const soundUrl = 'https://www.myinstants.com/media/sounds/pop-cat-original-meme_3ObdYkj.mp3';
-      const response = await fetch(soundUrl);
-      const arrayBuffer = await response.arrayBuffer();
-      this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      
-      this.isAudioReady = true;
-      console.log('✅ Web Audio API cargada');
-      
-    } catch (error) {
-      console.log('❌ Web Audio API falló, usando respaldo:', error);
-      this.isAudioReady = false;
-    }
-  }
-
-  initAudioFallback() {
-    // Crear múltiples Audio elements como respaldo
+    // Sistema de sonido SIMPLE y EFECTIVO
     const soundUrl = 'https://www.myinstants.com/media/sounds/pop-cat-original-meme_3ObdYkj.mp3';
     
-    for (let i = 0; i < this.maxConcurrentSounds; i++) {
+    // Precargar múltiples instancias
+    for (let i = 0; i < this.maxAudioElements; i++) {
       const audio = new Audio();
       audio.src = soundUrl;
       audio.preload = 'auto';
-      audio.volume = 0.8;
+      audio.volume = 0.7;
       this.audioElements.push(audio);
     }
     
-    console.log('✅ Audio elements de respaldo creados');
+    console.log(`✅ ${this.maxAudioElements} elementos de audio precargados`);
+    this.unlockAudio();
   }
 
   unlockAudio() {
@@ -104,90 +69,44 @@ class PopCatGame {
       this.audioUnlocked = true;
       console.log('✅ Audio desbloqueado');
       
-      // Resumir AudioContext si está suspendido
-      if (this.audioContext && this.audioContext.state === 'suspended') {
-        this.audioContext.resume();
-      }
-      
       // Reproducir sonido silencioso para desbloquear completamente
       this.playUnlockSound();
     };
 
-    // Múltiples eventos para desbloquear
+    // Desbloquear en múltiples eventos
     document.addEventListener('click', unlock, { once: true });
     document.addEventListener('touchstart', unlock, { once: true });
     document.addEventListener('keydown', unlock, { once: true });
     
-    // Forzar desbloqueo después de 2 segundos
-    setTimeout(unlock, 2000);
+    // Desbloqueo automático después de 1 segundo
+    setTimeout(unlock, 1000);
   }
 
   playUnlockSound() {
-    // Reproducir sonido silencioso para desbloquear audio en móviles
     try {
       const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
       silentAudio.volume = 0;
-      silentAudio.play().then(() => {
-        console.log('🔓 Audio completamente desbloqueado');
-      }).catch(() => {});
+      silentAudio.play().catch(() => {});
     } catch (e) {}
   }
 
   playPopSound() {
-    if (!this.audioUnlocked) return;
+    if (!this.audioUnlocked || !this.soundEnabled) return;
     
-    // Intentar Web Audio API primero
-    if (this.isAudioReady && this.audioBuffer) {
-      this.playWithWebAudio();
-    } else {
-      // Usar respaldo
-      this.playWithAudioElement();
-    }
-  }
-
-  playWithWebAudio() {
-    try {
-      // Limpiar fuentes terminadas
-      this.audioSources = this.audioSources.filter(source => 
-        source && source.playbackState !== source.FINISHED_STATE
-      );
-      
-      // Limitar sonidos concurrentes
-      if (this.audioSources.length >= this.maxConcurrentSounds) {
-        const oldestSource = this.audioSources.shift();
-        if (oldestSource) oldestSource.stop();
-      }
-      
-      // Crear nueva fuente
-      const source = this.audioContext.createBufferSource();
-      source.buffer = this.audioBuffer;
-      source.connect(this.audioContext.destination);
-      source.playbackRate.value = 1.0;
-      source.start(0);
-      
-      this.audioSources.push(source);
-      
-      source.onended = () => {
-        this.audioSources = this.audioSources.filter(s => s !== source);
-      };
-      
-    } catch (error) {
-      console.log('🔇 Error Web Audio, usando respaldo');
-      this.playWithAudioElement();
-    }
-  }
-
-  playWithAudioElement() {
     try {
       const audio = this.audioElements[this.currentAudioIndex];
       
-      // Reiniciar y reproducir
+      // REINICIAR COMPLETAMENTE antes de reproducir
+      audio.pause();
       audio.currentTime = 0;
+      
+      // Reproducir SIN await - no bloquear
       audio.play().catch(error => {
-        // Silenciar errores comunes
+        // Solo log errores no relacionados con interacción del usuario
         if (!error.message.includes('user didn\'t interact') && 
-            !error.message.includes('pause()')) {
-          console.log('🔇 Error audio element:', error.message);
+            !error.message.includes('pause()') &&
+            !error.message.includes('interrupted')) {
+          console.log('🔇 Error audio:', error.message);
         }
       });
       
@@ -195,7 +114,7 @@ class PopCatGame {
       this.currentAudioIndex = (this.currentAudioIndex + 1) % this.audioElements.length;
       
     } catch (error) {
-      console.log('🔇 Error total reproduciendo sonido');
+      // Silenciar errores por completo
     }
   }
 
@@ -265,13 +184,13 @@ class PopCatGame {
   }
 
   setupEventListeners() {
-    // Click en el gato
+    // Click en el gato - ANIMACIÓN PRIMERO, SONIDO DESPUÉS
     this.catContainer.addEventListener('click', (e) => {
       e.preventDefault();
       this.handleClick();
     });
     
-    // Touch para móviles - MEJORADO
+    // Touch para móviles - OPTIMIZADO
     this.catContainer.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.handleClick();
@@ -317,22 +236,25 @@ class PopCatGame {
       this.updateUserCountryDisplay();
     }
 
-    // ANIMACIÓN INMEDIATA
+    // 1. ANIMACIÓN INMEDIATA (CRÍTICA)
     this.animateClick();
     this.userClicks++;
     
-    // SONIDO DESPUÉS - no bloqueante
-    setTimeout(() => {
-      this.playPopSound();
-    }, 10);
-    
-    // Efecto de rotación en el contador
+    // 2. CONTADORES (IMPORTANTE)
     this.rotateCounter();
-    
-    // Actualizar contadores con animación
     this.updateFloatingCounter();
     this.animateNumber(this.myMiniClicks, this.userClicks, 300);
     
+    // 3. SONIDO - SEPARADO EN MICROTAREA (NO BLOQUEANTE)
+    setTimeout(() => {
+      this.playPopSound();
+    }, 0);
+    
+    // 4. API CALL (EN SEGUNDO PLANO)
+    this.sendClickToAPI();
+  }
+
+  async sendClickToAPI() {
     try {
       const response = await fetch(`${this.baseURL}/click`, {
         method: 'POST',
@@ -412,21 +334,27 @@ class PopCatGame {
   }
 
   animateClick() {
+    // ANIMACIÓN RÁPIDA Y OPTIMIZADA
     this.catContainer.classList.add('active');
     
     const clickEffect = this.catContainer.querySelector('.click-effect');
     clickEffect.textContent = '+1';
     clickEffect.style.animation = 'none';
     
+    // Forzar reflow y luego animación
+    void clickEffect.offsetWidth;
+    
     setTimeout(() => {
       clickEffect.style.animation = 'floatUp 1s ease-out forwards';
     }, 10);
 
+    // Transformación suave
     this.catContainer.style.transform = 'scale(0.95)';
     setTimeout(() => {
       this.catContainer.style.transform = 'scale(1)';
     }, 100);
 
+    // Remover clase active
     setTimeout(() => {
       this.catContainer.classList.remove('active');
     }, 100);
