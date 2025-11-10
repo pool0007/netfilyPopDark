@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PopCat Clone - Global Click Challenge</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌎 POPCAT CLONE</h1>
+      <div class="subtitle">¡Haz clic en el gato y compite globalmente!</div>
+    </header>
+
+    <main>
+      <div class="cat-container" id="catContainer">
+        <div class="cat-images">
+          <img src="https://i.ibb.co/Ktkqyk7/image1.png" class="cat-img cat-closed" alt="Cat Closed" />
+          <img src="https://i.ibb.co/nq7wjz4b/image2.png" class="cat-img cat-open" alt="Cat Open" />
+        </div>
+        <div class="click-effect">+1</div>
+      </div>
+      
+      <div class="click-counter">
+        <span id="totalClicks">0</span>
+        <span class="label">clicks totales</span>
+      </div>
+      
+      <div class="instructions">
+        ¡Haz clic en el gato para sumar puntos a tu país! 🎯
+      </div>
+    </main>
+  </div>
+
+  <!-- Dashboard Minimizado -->
+  <div class="dashboard-minimized" id="dashboardMinimized">
+    <div class="dashboard-header" id="dashboardToggle">
+      <div class="dashboard-stats">
+        <div class="stat-mini">
+          <span class="value" id="miniTotalClicks">0</span>
+          <span class="label">Clicks Totales</span>
+        </div>
+        <div class="stat-mini">
+          <span class="value" id="miniTopCountry">-</span>
+          <span class="label">País Líder</span>
+        </div>
+      </div>
+      <div class="toggle-arrow">▼</div>
+    </div>
+  </div>
+
+  <!-- Dashboard Expandido -->
+  <div class="dashboard-expanded" id="dashboardExpanded" style="display: none;">
+    <div class="dashboard-header" id="dashboardClose">
+      <h2>📊 Dashboard Global</h2>
+      <div class="toggle-arrow">▼</div>
+    </div>
+    
+    <div class="dashboard-content">
+      <div class="leaderboard-section">
+        <h2>🏆 Leaderboard Global</h2>
+        <div class="leaderboard">
+          <div class="leaderboard-header">
+            <span>#</span>
+            <span>País</span>
+            <span>Clicks</span>
+          </div>
+          <div id="leaderboardBody" class="leaderboard-body">
+            <!-- Leaderboard items will be loaded here -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="stats-section">
+        <h2>📈 Tus Estadísticas</h2>
+        <div class="user-stats">
+          <div class="stat-card">
+            <span class="value" id="userCountryStat">-</span>
+            <span class="label">Tu País</span>
+          </div>
+          <div class="stat-card">
+            <span class="value" id="userClicksStat">0</span>
+            <span class="label">Tus Clicks</span>
+          </div>
+          <div class="stat-card">
+            <span class="value" id="userRankStat">-</span>
+            <span class="label">Tu Posición</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
