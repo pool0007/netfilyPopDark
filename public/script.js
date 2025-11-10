@@ -24,11 +24,12 @@ class PopCatGame {
     this.myMiniFlag = document.getElementById('myMiniFlag');
     this.myMiniClicks = document.getElementById('myMiniClicks');
     
-    // Sistema de sonido
-    this.soundPool = [];
-    this.maxSounds = 12; // Más instancias para clicks ultra-rápidos
-    this.currentSoundIndex = 0;
-    this.audioUnlocked = false;
+    // Nuevo sistema de audio con Web Audio API
+    this.audioContext = null;
+    this.audioBuffer = null;
+    this.audioSources = [];
+    this.maxConcurrentSounds = 8;
+    this.isAudioReady = false;
     
     this.baseURL = window.location.origin + '/api';
     this.isDashboardExpanded = false;
@@ -38,86 +39,81 @@ class PopCatGame {
 
   async init() {
     await this.detectCountry();
-    this.initSound();
+    await this.initSound(); // Cambiado a async
     this.setupEventListeners();
     await this.loadLeaderboard();
     this.startAutoRefresh();
   }
 
-  initSound() {
-    // URL del sonido original de popcat.click
-    const soundUrl = 'https://www.myinstants.com/media/sounds/pop-cat-original-meme_3ObdYkj.mp3';
-    
-    // Crear múltiples instancias del sonido
-    for (let i = 0; i < this.maxSounds; i++) {
-      const audio = new Audio();
-      audio.src = soundUrl;
-      audio.preload = 'auto';
-      audio.volume = 0.8; // Volumen más alto
-      this.soundPool.push(audio);
+  async initSound() {
+    try {
+      // Crear AudioContext
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Cargar el buffer de audio
+      const soundUrl = 'https://www.myinstants.com/media/sounds/pop-cat-original-meme_3ObdYkj.mp3';
+      const response = await fetch(soundUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+      
+      this.isAudioReady = true;
+      console.log('✅ Audio cargado y listo');
+      
+    } catch (error) {
+      console.error('❌ Error cargando audio:', error);
+      this.isAudioReady = false;
     }
-
-    console.log(`🔊 Cargadas ${this.maxSounds} instancias de sonido`);
     
-    // Desbloquear audio en móviles
+    // Desbloquear audio
     this.unlockAudio();
   }
 
   unlockAudio() {
     const unlock = () => {
-      if (this.audioUnlocked) return;
-      
-      // Reproducir sonido silencioso para desbloquear audio
-      const silentSound = new Audio();
-      silentSound.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-      silentSound.volume = 0;
-      
-      silentSound.play().then(() => {
-        this.audioUnlocked = true;
-        console.log('✅ Audio desbloqueado');
-        silentSound.remove();
-      }).catch(e => {
-        console.log('❌ Audio no desbloqueado:', e);
-      });
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        this.audioContext.resume().then(() => {
+          console.log('✅ AudioContext desbloqueado');
+        });
+      }
     };
 
-    // Intentar desbloquear en diferentes eventos
     document.addEventListener('click', unlock, { once: true });
     document.addEventListener('touchstart', unlock, { once: true });
-    document.addEventListener('keydown', unlock, { once: true });
-    
-    // Desbloquear automáticamente después de 1 segundo
-    setTimeout(unlock, 1000);
   }
 
   playPopSound() {
-    if (!this.soundPool.length) return;
+    if (!this.isAudioReady || !this.audioBuffer) return;
     
     try {
-      const sound = this.soundPool[this.currentSoundIndex];
+      // Limpiar fuentes terminadas
+      this.audioSources = this.audioSources.filter(source => 
+        source && source.playbackState !== source.FINISHED_STATE
+      );
       
-      // INTERRUMPIR Y REINICIAR - clave para sonidos rápidos
-      sound.pause();
-      sound.currentTime = 0;
-      
-      // Reproducir inmediatamente
-      const playPromise = sound.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // Silenciar errores comunes de reproducción
-          if (!error.message.includes('user didn\'t interact') && 
-              !error.message.includes('interaction')) {
-            console.log('🔇 Error reproduciendo sonido:', error.message);
-          }
-        });
+      // Limitar sonidos concurrentes
+      if (this.audioSources.length >= this.maxConcurrentSounds) {
+        const oldestSource = this.audioSources.shift();
+        if (oldestSource) oldestSource.stop();
       }
       
-      // Rotar al siguiente sonido en la cola
-      this.currentSoundIndex = (this.currentSoundIndex + 1) % this.maxSounds;
+      // Crear nueva fuente de audio
+      const source = this.audioContext.createBufferSource();
+      source.buffer = this.audioBuffer;
+      source.connect(this.audioContext.destination);
+      
+      // Configurar y reproducir
+      source.playbackRate.value = 1.0;
+      source.start(0);
+      
+      this.audioSources.push(source);
+      
+      // Limpiar cuando termine
+      source.onended = () => {
+        this.audioSources = this.audioSources.filter(s => s !== source);
+      };
       
     } catch (error) {
-      // Silenciar errores de reproducción
+      console.log('🔇 Error reproduciendo sonido:', error);
     }
   }
 
@@ -239,11 +235,14 @@ class PopCatGame {
       this.updateUserCountryDisplay();
     }
 
+    // ANIMACIÓN PRIMERO - sin esperar al sonido
     this.animateClick();
     this.userClicks++;
     
-    // Reproducir sonido INMEDIATAMENTE - antes que cualquier otra cosa
-    this.playPopSound();
+    // SONIDO DESPUÉS - no bloquea la animación
+    setTimeout(() => {
+      this.playPopSound();
+    }, 0);
     
     // Efecto de rotación en el contador
     this.rotateCounter();
