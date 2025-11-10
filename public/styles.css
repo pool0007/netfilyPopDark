@@ -48,16 +48,12 @@ body::before {
   flex-direction: column;
 }
 
-/* Header */
+/* Header - Sin efecto glass */
 header {
   text-align: center;
   margin-bottom: 10px;
   padding: 20px;
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow);
+  background: transparent;
 }
 
 header h1 {
@@ -82,65 +78,36 @@ main {
   margin-bottom: 100px;
   flex: 1;
   position: relative;
-}
-
-/* Contador Personal */
-.personal-counter {
-  margin-bottom: 20px;
-}
-
-.my-stats {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 15px;
-  background: var(--card-bg);
-  padding: 15px 25px;
-  border-radius: 50px;
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow);
+  justify-content: center;
+  min-height: 60vh;
 }
 
-.my-flag {
-  width: 40px;
-  height: 30px;
-  border-radius: 5px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-.my-flag img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.my-clicks {
-  text-align: center;
-}
-
-#myClicks {
-  font-size: 2.5rem;
-  font-weight: 800;
-  display: block;
-  color: var(--secondary-color);
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  line-height: 1;
-}
-
-.clicks-label {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+/* Contador Flotante */
+.floating-counter {
+  position: absolute;
+  top: -80px;
+  font-size: 4rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 
+    3px 3px 0 #000,
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  z-index: 100;
+  pointer-events: none;
+  transition: all 0.3s ease;
 }
 
 /* Cat Container */
 .cat-container {
   position: relative;
   display: inline-block;
-  margin-bottom: 30px;
+  margin: 100px 0 30px 0;
   cursor: pointer;
   transition: transform 0.2s ease;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
@@ -211,7 +178,7 @@ main {
 .instructions {
   font-size: 1.3rem;
   opacity: 0.9;
-  margin-top: 10px;
+  margin-top: 20px;
   background: var(--card-bg);
   padding: 10px 20px;
   border-radius: 50px;
@@ -500,6 +467,53 @@ main {
   }
 }
 
+/* Animaciones para el contador flotante */
+@keyframes floatLeft {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-5deg); }
+  100% { transform: translateY(-20px) rotate(-10deg); }
+}
+
+@keyframes floatRight {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+  100% { transform: translateY(-20px) rotate(10deg); }
+}
+
+@keyframes floatCenter {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-15px) scale(1.1); }
+  100% { transform: translateY(-30px) scale(1.2); }
+}
+
+.floating-number {
+  position: absolute;
+  font-size: 4rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 
+    3px 3px 0 #000,
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+}
+
+.floating-number.left {
+  animation: floatLeft 1s ease-out forwards;
+}
+
+.floating-number.right {
+  animation: floatRight 1s ease-out forwards;
+}
+
+.floating-number.center {
+  animation: floatCenter 1s ease-out forwards;
+}
+
 /* Scrollbar */
 .leaderboard-body-full::-webkit-scrollbar {
   width: 6px;
@@ -530,12 +544,9 @@ main {
     height: 300px;
   }
   
-  .my-stats {
-    padding: 12px 20px;
-  }
-  
-  #myClicks {
-    font-size: 2rem;
+  .floating-counter,
+  .floating-number {
+    font-size: 3rem;
   }
   
   .dashboard-expanded {
@@ -573,10 +584,9 @@ main {
     height: 250px;
   }
   
-  .my-stats {
-    flex-direction: column;
-    gap: 10px;
-    padding: 15px;
+  .floating-counter,
+  .floating-number {
+    font-size: 2.5rem;
   }
   
   .dashboard-header {
