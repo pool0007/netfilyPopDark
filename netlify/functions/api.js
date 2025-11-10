@@ -15,50 +15,90 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
-
-// Initialize database
-async function initializeDatabase() {
+// Database connection with better error handling
+const createPool = () => {
   try {
-    const tableCheck = await pool.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'clicks'
+    console.log('🔗 Creating database pool with URL:', 
+      process.env.DATABASE_URL ? 'URL present' : 'URL missing');
+    
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { 
+        rejectUnauthorized: false 
+      },
+      // Additional connection settings for Neon
+      connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 30000,
+      max: 5
+    });
+
+    // Test connection
+    pool.on('connect', () => {
+      console.log('✅ Database connected successfully');
+    });
+
+    pool.on('error', (err) => {
+      console.error('❌ Database connection error:', err);
+    });
+
+    return pool;
+  } catch (error) {
+    console.error('❌ Error creating pool:', error);
+    throw error;
+  }
+};
+
+let pool;
+
+// Initialize database connection
+const initializeDatabase = async () => {
+  try {
+    if (!pool) {
+      pool = createPool();
+    }
+
+    // Test the connection
+    const client = await pool.connect();
+    console.log('✅ Database connection test successful');
+    
+    // Check if table exists, create if not
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'clicks'
+      );
     `);
-    
-    const existingColumns = tableCheck.rows.map(row => row.column_name);
-    
-    if (existingColumns.length === 0) {
-      await pool.query(`
+
+    if (!tableCheck.rows[0].exists) {
+      console.log('📋 Creating clicks table...');
+      await client.query(`
         CREATE TABLE clicks (
           country TEXT PRIMARY KEY,
           total_clicks BIGINT DEFAULT 0
         );
       `);
       console.log('✅ Table created successfully');
+    } else {
+      console.log('✅ Table already exists');
     }
-    
-    console.log('✅ Database initialized successfully');
-  } catch (err) {
-    console.error('❌ Database initialization error:', err);
-    
-    try {
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS clicks (
-          country TEXT PRIMARY KEY,
-          total_clicks BIGINT DEFAULT 0
-        );
-      `);
-      console.log('✅ Fallback table creation successful');
-    } catch (fallbackError) {
-      console.error('❌ Fallback also failed:', fallbackError);
-    }
+
+    client.release();
+    return true;
+  } catch (error) {
+    console.error('❌ Database initialization error:', error);
+    return false;
   }
-}
+};
+
+// Initialize on cold start
+let dbInitialized = false;
+
+const ensureDatabaseInitialized = async () => {
+  if (!dbInitialized) {
+    dbInitialized = await initializeDatabase();
+  }
+  return dbInitialized;
+};
 
 // Routes
 app.post('/click', async (req, res) => {
@@ -71,6 +111,12 @@ app.post('/click', async (req, res) => {
   }
 
   try {
+    // Ensure database is initialized
+    const initialized = await ensureDatabaseInitialized();
+    if (!initialized) {
+      throw new Error('Database not initialized');
+    }
+
     const updateResult = await pool.query(
       `INSERT INTO clicks (country, total_clicks)
        VALUES ($1, 1)
@@ -104,6 +150,11 @@ app.post('/click', async (req, res) => {
 
 app.get('/leaderboard', async (req, res) => {
   try {
+    const initialized = await ensureDatabaseInitialized();
+    if (!initialized) {
+      throw new Error('Database not initialized');
+    }
+
     const result = await pool.query(
       "SELECT country, total_clicks FROM clicks ORDER BY total_clicks DESC LIMIT 20"
     );
@@ -120,6 +171,11 @@ app.get('/leaderboard', async (req, res) => {
 
 app.get('/test-db', async (req, res) => {
   try {
+    const initialized = await ensureDatabaseInitialized();
+    if (!initialized) {
+      throw new Error('Database not initialized');
+    }
+
     const result = await pool.query("SELECT NOW()");
     const tableCheck = await pool.query("SELECT COUNT(*) as count FROM clicks");
     const sampleData = await pool.query("SELECT * FROM clicks ORDER BY total_clicks DESC LIMIT 5");
@@ -142,11 +198,12 @@ app.get('/test-db', async (req, res) => {
 
 app.get('/health', async (req, res) => {
   try {
-    const dbCheck = await pool.query('SELECT 1');
+    const initialized = await ensureDatabaseInitialized();
+    
     res.json({ 
       status: 'OK', 
       timestamp: new Date().toISOString(),
-      database: 'connected',
+      database: initialized ? 'connected' : 'disconnected',
       environment: process.env.NODE_ENV || 'development'
     });
   } catch (err) {
@@ -158,7 +215,12 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// Initialize database when function loads
-initializeDatabase();
+// Health check endpoint for Netlify
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'PopCat API is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
 export const handler = serverless(app);
