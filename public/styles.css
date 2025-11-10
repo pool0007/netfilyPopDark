@@ -79,7 +79,7 @@ main {
 /* Contador Flotante con efecto de rotación */
 .floating-counter {
   position: absolute;
-  top: -80px; /* Subido un poco más */
+  top: -80px;
   font-size: 4rem;
   font-weight: 900;
   color: white;
@@ -108,11 +108,28 @@ main {
   transform: rotate(0deg) scale(1.05);
 }
 
+/* Efecto de agrandamiento para el contador */
+.floating-counter.animating {
+  animation: numberGrow 0.2s ease-in-out;
+}
+
+@keyframes numberGrow {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Cat Container - 50% más grande y subido */
 .cat-container {
   position: relative;
   display: inline-block;
-  margin: 100px 0 50px 0; /* Reducido el margen superior para subir la imagen */
+  margin: 100px 0 50px 0;
   cursor: pointer;
   transition: transform 0.2s ease;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
@@ -124,8 +141,8 @@ main {
 
 .cat-images {
   position: relative;
-  width: 600px; /* 50% más grande que 400px */
-  height: 600px; /* 50% más grande que 400px */
+  width: 600px;
+  height: 600px;
 }
 
 .cat-img {
@@ -135,8 +152,8 @@ main {
   width: 100%;
   height: 100%;
   transition: opacity 0.1s ease;
-  border-radius: 50%;
-  object-fit: cover; /* Asegura que la imagen no se recorte */
+  /* QUITADO: border-radius: 50%; */
+  /* QUITADO: object-fit: cover; */
 }
 
 .cat-closed {
@@ -406,7 +423,7 @@ main {
 
 /* MEDALLAS MEJORADAS */
 .leaderboard-item:nth-child(1) .rank {
-  color: #FFD700; /* Gold */
+  color: #FFD700;
   font-size: 1.3em;
   font-weight: 800;
 }
@@ -418,7 +435,7 @@ main {
 }
 
 .leaderboard-item:nth-child(2) .rank {
-  color: #C0C0C0; /* Silver */
+  color: #C0C0C0;
   font-size: 1.2em;
   font-weight: 800;
 }
@@ -430,7 +447,7 @@ main {
 }
 
 .leaderboard-item:nth-child(3) .rank {
-  color: #CD7F32; /* Bronze */
+  color: #CD7F32;
   font-size: 1.2em;
   font-weight: 800;
 }
@@ -521,7 +538,7 @@ main {
   
   .floating-counter {
     font-size: 3.5rem;
-    top: -60px; /* Más arriba en móvil */
+    top: -60px;
   }
   
   .dashboard-minimized,
@@ -530,9 +547,8 @@ main {
     max-width: 95%;
   }
   
-  /* Dashboard minimizado en horizontal para móvil */
   .dashboard-minimized .dashboard-content {
-    flex-direction: row; /* Mantener horizontal en móvil */
+    flex-direction: row;
     gap: 10px;
   }
   
@@ -543,7 +559,6 @@ main {
     flex: 1;
   }
   
-  /* Achicar fuentes en móvil */
   .top-country {
     padding: 6px 10px;
     gap: 5px;
@@ -605,7 +620,7 @@ main {
   
   .floating-counter {
     font-size: 3rem;
-    top: -50px; /* Aún más arriba en pantallas pequeñas */
+    top: -50px;
   }
   
   .dashboard-minimized,
@@ -615,7 +630,6 @@ main {
     padding: 10px 12px;
   }
   
-  /* Ajustes más compactos para móvil pequeño */
   .dashboard-minimized .dashboard-content {
     gap: 8px;
   }
@@ -645,7 +659,6 @@ main {
     height: 18px;
   }
   
-  /* Medallas en móvil */
   .leaderboard-item:nth-child(1) .rank::before,
   .leaderboard-item:nth-child(2) .rank::before,
   .leaderboard-item:nth-child(3) .rank::before {
