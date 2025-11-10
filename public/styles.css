@@ -86,7 +86,7 @@ main {
 /* Contador Flotante */
 .floating-counter {
   position: absolute;
-  top: -60px;
+  top: -40px;
   font-size: 4rem;
   font-weight: 900;
   color: white;
@@ -557,7 +557,7 @@ main {
   
   .floating-counter {
     font-size: 3.5rem;
-    top: -50px;
+    top: -30px;
   }
   
   /* POSICIÓN MÁS BAJA DEL GATO EN MÓVIL */
@@ -656,7 +656,7 @@ main {
   
   .floating-counter {
     font-size: 2.8rem;
-    top: -40px;
+    top: -20px;
   }
   
   /* POSICIÓN MÁS BAJA EN MÓVILES PEQUEÑOS */
