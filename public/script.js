@@ -36,18 +36,15 @@ class PopCatGame {
     try {
       console.log('🌍 Detecting country...');
       
-      // Intentar con ipapi.co primero
       let countryData = await this.tryIpApi();
       
-      // Si falla, intentar con ipify
       if (!countryData) {
         countryData = await this.tryIpify();
       }
       
-      // Si aún falla, usar un país por defecto
       if (!countryData) {
         countryData = {
-          country: 'Unknown',
+          country: 'Global',
           countryCode: 'un'
         };
         console.log('⚠️ Using fallback country detection');
@@ -62,8 +59,7 @@ class PopCatGame {
       
     } catch (error) {
       console.error('❌ Error detecting country:', error);
-      // Usar valores por defecto en caso de error
-      this.userCountry = 'Unknown';
+      this.userCountry = 'Global';
       this.userCountryCode = 'un';
       this.updateUserCountryDisplay();
     }
@@ -75,8 +71,7 @@ class PopCatGame {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
-        },
-        timeout: 5000
+        }
       });
       
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -99,20 +94,14 @@ class PopCatGame {
 
   async tryIpify() {
     try {
-      // Primero obtener la IP
-      const ipRes = await fetch('https://api.ipify.org?format=json', {
-        timeout: 5000
-      });
+      const ipRes = await fetch('https://api.ipify.org?format=json');
       
       if (!ipRes.ok) throw new Error(`HTTP ${ipRes.status}`);
       
       const ipData = await ipRes.json();
       const ip = ipData.ip;
       
-      // Luego obtener información de la IP
-      const infoRes = await fetch(`https://ipapi.co/${ip}/json/`, {
-        timeout: 5000
-      });
+      const infoRes = await fetch(`https://ipapi.co/${ip}/json/`);
       
       if (!infoRes.ok) throw new Error(`HTTP ${infoRes.status}`);
       
@@ -135,9 +124,9 @@ class PopCatGame {
   updateUserCountryDisplay() {
     const flagUrl = `https://flagcdn.com/24x18/${this.userCountryCode}.png`;
     
-    if (this.userCountry === 'Unknown') {
+    if (this.userCountry === 'Global') {
       this.userCountryStat.innerHTML = `
-        <span style="color: #ff6b6b;">🌐 Country not detected</span>
+        <span style="color: #f59e0b;">🌍 Global Player</span>
       `;
     } else {
       this.userCountryStat.innerHTML = `
@@ -190,9 +179,8 @@ class PopCatGame {
   }
 
   async handleClick() {
-    // Permitir clicks incluso si el país no se detecta
-    if (!this.userCountry || this.userCountry === 'Unknown') {
-      // Usar un país por defecto
+    // Permitir clicks incluso si el país no se detecta correctamente
+    if (!this.userCountry || this.userCountry === 'Global') {
       this.userCountry = 'Global';
       this.userCountryCode = 'un';
       this.updateUserCountryDisplay();
@@ -201,7 +189,6 @@ class PopCatGame {
     this.animateClick();
     this.userClicks++;
     
-    // Actualizar clicks del usuario
     this.userClicksStat.textContent = this.userClicks.toLocaleString();
     
     try {
@@ -227,6 +214,7 @@ class PopCatGame {
         this.updateLeaderboard(data.leaderboard);
         this.updateTotalClicks(data.leaderboard);
         this.updateDashboardStats();
+        console.log('🎯 Click registered for:', this.userCountry);
       } else {
         console.error('Server error:', data.error);
       }
@@ -419,35 +407,6 @@ class PopCatGame {
       this.loadLeaderboard();
     }, 3000);
   }
-}
-
-// Polyfill para timeout en fetch
-if (!window.fetch) {
-  console.log('Fetch not supported');
-} else {
-  const originalFetch = window.fetch;
-  window.fetch = function(...args) {
-    const [resource, config = {}] = args;
-    const timeout = config.timeout || 8000;
-    
-    const controller = new AbortController();
-    const { signal } = controller;
-    
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, timeout);
-    
-    return originalFetch(resource, {
-      ...config,
-      signal
-    }).then(response => {
-      clearTimeout(timeoutId);
-      return response;
-    }).catch(error => {
-      clearTimeout(timeoutId);
-      throw error;
-    });
-  };
 }
 
 document.addEventListener('DOMContentLoaded', () => {
