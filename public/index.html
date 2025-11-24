@@ -11,6 +11,7 @@
   <div class="container">
     <header>
       <img src="https://i.ibb.co/4RVd9pdq/POPDARK.png" alt="PopCat" class="logo" onerror="this.style.display='none'">
+      <button class="about-btn" id="aboutBtn">About Popdak</button>
     </header>
 
     <main>
@@ -24,6 +25,39 @@
         <div class="click-effect">+1</div>
       </div>
     </main>
+  </div>
+
+  <!-- About Modal -->
+  <div class="modal-overlay" id="aboutModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>About Popdak</h2>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>After a long day of Rug pulls come Pop-Dak thang!! It's a great stress relief from the Rug pulls in the market!</p>
+        <p>The Most useless coin on Monad is here Pop-Dak made by us for us with the #1 Meme Mascot, Molandak on Monad let's see how many times you can POP-Dak thang!!</p>
+        <p><strong>Disclaimer:</strong> this token was made for the vibes, invest at your own risk</p>
+        <div class="modal-features">
+          <div class="feature-item">
+            <span class="feature-icon">💎</span>
+            <span>Created by WeDev Team</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">💰</span>
+            <span>0/0 Tax</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🛡️</span>
+            <span>No Rug zone</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">👥</span>
+            <span>100% Community owned</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="dashboard-minimized" id="dashboardMinimized">
@@ -68,5 +102,30 @@
 
   <script src="country-codes.js"></script>
   <script src="script.js"></script>
+  <script>
+    // Código para manejar el modal About
+    document.addEventListener('DOMContentLoaded', function() {
+      const aboutBtn = document.getElementById('aboutBtn');
+      const aboutModal = document.getElementById('aboutModal');
+      const modalClose = document.getElementById('modalClose');
+      
+      // Mostrar modal al hacer clic en About
+      aboutBtn.addEventListener('click', function() {
+        aboutModal.style.display = 'flex';
+      });
+      
+      // Ocultar modal al hacer clic en la X
+      modalClose.addEventListener('click', function() {
+        aboutModal.style.display = 'none';
+      });
+      
+      // Ocultar modal al hacer clic fuera del contenido
+      aboutModal.addEventListener('click', function(e) {
+        if (e.target === aboutModal) {
+          aboutModal.style.display = 'none';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
