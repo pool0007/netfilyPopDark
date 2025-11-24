@@ -732,11 +732,15 @@ main {
     max-width: 250px;
   }
   
+  /* POSICIÓN MEJORADA DEL BOTÓN ABOUT EN MÓVIL */
   .about-btn {
-    top: 15px;
-    right: 15px;
+    position: fixed;
+    top: auto;
+    bottom: 80px;
+    right: 20px;
     padding: 8px 16px;
     font-size: 0.9rem;
+    z-index: 999;
   }
   
   .cat-images {
@@ -857,9 +861,10 @@ main {
     max-width: 200px;
   }
   
+  /* POSICIÓN MEJORADA DEL BOTÓN ABOUT EN MÓVILES PEQUEÑOS */
   .about-btn {
-    top: 10px;
-    right: 10px;
+    bottom: 70px;
+    right: 15px;
     padding: 6px 12px;
     font-size: 0.8rem;
   }
